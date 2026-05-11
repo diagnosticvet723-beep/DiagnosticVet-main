@@ -457,14 +457,14 @@ const K={users:'dv_u',prog:'dv_p',scores:'dv_s',videos:'dv_v'};
 
 // ══ MODULES ══
 const MODS=[
-  {t:'Introducción a la gasometría',d:'¿Qué son los gases sanguíneos y para qué sirven?',dur:'9 min'},
-  {t:'ABC del Balance Acido-Base',d:'Conceptos claves',dur:'13 min'},
-  {t:'Determinantes del pH',d:'Dioxido de carbono y Bicarbonato',dur:'10 min'},
-  {t:'Anion Gap',d:'Electroneutralidad y tipos de trastorno',dur:'9 min'},
-  {t:'Deficit - Exceso de Base',d:'Parametro de directo',dur:'11 min'},
-  {t:'Toma de muestra',d:'Proceso de la toma de muestra',dur:'10 min'},
-  {t:'Analisis de Gases',d:'Paso a paso',dur:'12 min'},
-  {t:'Paso a paso del Analisis de Gases ',d:'Paso a paso',dur:'13 min'},
+  {t:'Introducción a la gasometría',d:'¿Qué son los gases sanguíneos y para qué sirven?',dur:'8 min'},
+  {t:'Toma de muestra arterial',d:'Técnica en arteria femoral, metatarsal y auricular',dur:'7 min'},
+  {t:'pH y equilibrio ácido-base',d:'Valores normales en perros, gatos y animales de granja',dur:'10 min'},
+  {t:'PaCO2 y ventilación alveolar',d:'Hipercapnia, hipocapnia y su significado clínico',dur:'9 min'},
+  {t:'HCO3 y componente metabólico',d:'Bicarbonato, exceso de base y compensación renal',dur:'11 min'},
+  {t:'PaO2 y oxigenación',d:'Hipoxemia: clasificación, gradiente A-a y causas',dur:'10 min'},
+  {t:'Acidosis respiratoria',d:'Causas más frecuentes en perros y gatos, diagnóstico y manejo',dur:'12 min'},
+  {t:'Acidosis y alcalosis metabólica',d:'Anión gap veterinario, cetoacidosis diabética felina y manejo',dur:'13 min'},
   {t:'Trastornos mixtos',d:'Reconocimiento y estrategia diagnóstica paso a paso',dur:'11 min'},
   {t:'Casos clínicos integrados',d:'10 casos reales: UCI, emergencias y exóticos',dur:'15 min'},
 ];
@@ -479,9 +479,9 @@ const QUIZ=[
    {q:'VERDADERO o FALSO: Un mismo animal puede experimentar simultáneamente dos tipos diferentes de acidosis y alcalosis metabólica, lo que puede dar lugar a un pH sanguíneo normal.',o:['Verdadero','Falso'],c:0,e:'Verdadero. Los trastornos mixtos pueden coexistir y compensarse entre sí, resultando en un pH aparentemente normal a pesar de haber alteraciones ácido-base significativas.'},
    {q:'VERDADERO o FALSO: Si un paciente tiene una concentración de iones de hidrógeno en sangre de 31 nmoles/L, su pH sanguíneo es alto.',o:['Verdadero','Falso'],c:0,e:'Verdadero. Una concentración de H⁺ de 31 nmoles/L corresponde a un pH de aproximadamente 7.51, que es alcalemia (pH alto). A menor concentración de H⁺, mayor pH.'}],
   // M2
-  [{q:'¿Cuál es el rango normal de pH arterial en perros?',o:['7.20–7.30','7.35–7.45','7.45–7.55','7.25–7.40'],c:1,e:'El pH arterial normal en perros es 7.35–7.45. En gatos es ligeramente más estrecho: 7.36–7.44.'},
-   {q:'Un pH de 7.28 se denomina:',o:['Alcalemia leve','Valor normal','Acidemia','Alcalosis compensada'],c:2,e:'Cualquier pH por debajo de 7.35 se denomina acidemia. 7.28 es una acidemia moderada que requiere identificar su causa.'},
-   {q:'¿Qué indica un pH > 7.45?',o:['Acidemia','Valor normal alto','Alcalemia','Error de laboratorio'],c:2,e:'Un pH mayor de 7.45 indica alcalemia. El organismo normalmente regula el pH con gran precisión; valores fuera del rango son siempre patológicos.'}],
+  [{q:'En el sistema tampón bicarbonato, si la PaCO2 aumenta a 60 mmHg manteniendo el HCO3 en 24 mEq/L, ¿qué ocurre con el pH según la ecuación de Henderson-Hasselbalch?',o:['El pH sube porque hay más CO2 disponible','El pH baja porque aumenta la concentración de H2CO3','El pH se mantiene porque el HCO3 compensa automáticamente','El pH sube porque el riñón retiene bicarbonato inmediatamente'],c:1,e:'Según Henderson-Hasselbalch, el pH depende de la relación HCO3/PaCO2. Al aumentar la PaCO2 sin cambio en HCO3, aumenta el H2CO3 y baja el pH.'},
+   {q:'Un paciente con vómito crónico pierde grandes cantidades de HCl gástrico. ¿Cuál es el mecanismo renal de compensación esperado?',o:['Retención de H+ y eliminación de HCO3 para corregir la alcalosis','Retención de HCO3 para compensar la pérdida de cloro y mantener la electroneutralidad','Aumento de la reabsorción de CO2 tubular','Eliminación de potasio para conservar el sodio'],c:1,e:'La pérdida de HCl genera alcalosis hipoclorémica. El riñón compensa reteniendo HCO3 para mantener la electroneutralidad ante el déficit de Cl⁻.'},
+   {q:'¿Por qué la compensación renal en un trastorno respiratorio es más lenta que la compensación pulmonar en un trastorno metabólico?',o:['Porque el riñón no puede modificar el HCO3','Porque la síntesis y excreción de bicarbonato renal tarda horas a días, mientras el pulmón ajusta la ventilación en minutos','Porque el pulmón tiene mayor capacidad tampón que el riñón','Porque el riñón solo actúa en alcalosis, no en acidosis'],c:1,e:'El pulmón ajusta la ventilación en minutos. El riñón en cambio tarda horas a días en modificar la excreción/reabsorción de HCO3, por lo que la compensación renal es más lenta pero más duradera.'}],
   // M3
   [{q:'¿Cuál es el valor normal de PaCO2 en perros?',o:['20–30 mmHg','35–45 mmHg','50–60 mmHg','60–75 mmHg'],c:1,e:'La PaCO2 normal en perros es 35–45 mmHg. Valores mayores indican hipoventilación (hipercapnia) y menores, hiperventilación (hipocapnia).'},
    {q:'PaCO2 elevada con pH bajo indica:',o:['Alcalosis metabólica','Acidosis respiratoria','Alcalosis respiratoria','Acidosis metabólica pura'],c:1,e:'PaCO2 alta + pH bajo = acidosis respiratoria. El exceso de CO2 se convierte en ácido carbónico, disminuyendo el pH.'},
@@ -516,7 +516,7 @@ const QUIZ=[
 const YT=[
   'Vj2bpya1SEY', // Clase 1 — Introducción a la gasometría
   'REGMuRLREbI', // Clase 2
-  '',            // Clase 3
+  'KeecY62m4mg', // Clase 3
   '',            // Clase 4
   '',            // Clase 5
   '',            // Clase 6
