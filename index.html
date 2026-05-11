@@ -513,10 +513,23 @@ const QUIZ=[
    {q:'Perro politraumatizado: pH 7.22, PaCO2 28, HCO3 10. Diagnóstico:',o:['Acidosis respiratoria compensada','Acidosis metabólica con compensación respiratoria adecuada','Alcalosis metabólica','Trastorno mixto alcalótico'],c:1,e:'pH bajo + HCO3 muy bajo (acidosis metabólica) + PaCO2 baja (hiperventilación compensatoria). La compensación es adecuada según Winter (PaCO2 esperada ≈ 23 mmHg).'}],
 ];
 
+// ══ YOUTUBE IDs por clase (índice 0 = clase 1) ══
+const YT=[
+  'Vj2bpya1SEY', // Clase 1 — Introducción a la gasometría
+  '',            // Clase 2
+  '',            // Clase 3
+  '',            // Clase 4
+  '',            // Clase 5
+  '',            // Clase 6
+  '',            // Clase 7
+  '',            // Clase 8
+  '',            // Clase 9
+  '',            // Clase 10
+];
+
 // ══ STATE ══
 let CU=null,CM=0,CQ=0,SA=null,ANS=false,QS=0,QD=false,AIH=[];
 let PROG=[],SCORES=[];
-// videoBlobs: object key=modIndex, value=blob URL (only in memory this session)
 const VBL={};
 
 // ══ SCREEN HELPERS ══
@@ -675,18 +688,35 @@ function onFileSelect(e){
 }
 
 function playVideo(){
+  const ytid=YT[CM];
   const blob=VBL[CM];
-  if(!blob){
-    if(CU?.isAdmin)alert('Selecciona primero el archivo MP4 de esta clase usando el botón de arriba.');
-    else alert('El video de esta clase estará disponible próximamente.');
+  if(ytid){
+    const wrap=document.getElementById('vwrap');
+    const old2=document.getElementById('yt-iframe');
+    if(old2)old2.remove();
+    const iframe=document.createElement('iframe');
+    iframe.id='yt-iframe';
+    iframe.src='https://www.youtube.com/embed/'+ytid+'?autoplay=1&rel=0&modestbranding=1';
+    iframe.style.cssText='position:absolute;inset:0;width:100%;height:100%;border:none;z-index:2;';
+    iframe.allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+    iframe.allowFullscreen=true;
+    wrap.style.position='relative';
+    wrap.appendChild(iframe);
+    document.getElementById('vph').style.display='none';
+    markWatched();
     return;
   }
-  const pl=document.getElementById('vplayer');
-  pl.src=blob;
-  pl.style.display='block';
-  document.getElementById('vph').style.display='none';
-  pl.play();
-  markWatched();
+  if(blob){
+    const pl=document.getElementById('vplayer');
+    pl.src=blob;
+    pl.style.display='block';
+    document.getElementById('vph').style.display='none';
+    pl.play();
+    markWatched();
+    return;
+  }
+  if(CU&&CU.isAdmin)alert('Agrega el ID de YouTube en el array YT del codigo.');
+  else alert('El video de esta clase estara disponible proximamente.');
 }
 
 function onVideoEnd(){markWatched();}
