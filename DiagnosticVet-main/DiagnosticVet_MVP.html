@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DiagnosticVet — Gasometría</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Lora:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --p:#6C3FD4;--pd:#4A2A99;--pdd:#2E1A6B;--pl:#EDE8FC;--pale:#F5F3FF;--pm:#8B5CF6;--acc:#C084FC;
+  --red:#DC2626;--rl:#FEE2E2;--green:#059669;--gl:#D1FAE5;--amber:#D97706;--al:#FEF3C7;
+  --g50:#FAFAF9;--g100:#F4F3F0;--g200:#E5E3DC;--g400:#9CA3A0;--g600:#6B7280;--g900:#1C1917;
+  --text:#1C1917;--muted:#57534E;--hint:#9CA3A0;
+  --bdr:rgba(108,63,212,0.11);--bdrm:rgba(108,63,212,0.2);
+  --white:#fff;--r:10px;--rlg:16px;
+  --font:'Sora',sans-serif;--serif:'Lora',serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{font-family:var(--font);background:var(--g50);color:var(--text);font-size:14px;}
+::-webkit-scrollbar{width:3px;height:3px;}
+::-webkit-scrollbar-thumb{background:var(--g200);border-radius:99px;}
+
+/* ── SCREENS ── */
+.screen{display:none;position:fixed;inset:0;z-index:10;}
+.screen.on{display:flex;}
+
+/* ══ LOGIN ══ */
+#s-login{background:linear-gradient(135deg,var(--pdd) 0%,#1a0d3d 55%,#0d1020 100%);align-items:center;justify-content:center;overflow:hidden;}
+.lb{position:absolute;inset:0;background-image:radial-gradient(circle at 20% 20%,rgba(108,63,212,.22) 0,transparent 50%),radial-gradient(circle at 80% 75%,rgba(192,132,252,.14) 0,transparent 50%);}
+.ld{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(139,92,246,.13) 1px,transparent 1px);background-size:30px 30px;}
+.lcard{position:relative;background:rgba(255,255,255,.05);border:0.5px solid rgba(192,132,252,.2);border-radius:20px;padding:40px 36px;width:100%;max-width:400px;backdrop-filter:blur(18px);animation:fup .5s ease;}
+@keyframes fup{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+.llogo{display:flex;align-items:center;gap:11px;margin-bottom:28px;}
+.lic{width:42px;height:42px;background:linear-gradient(135deg,var(--pm),var(--acc));border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.lname{font-family:var(--serif);font-size:20px;font-weight:600;color:#fff;}
+.ltag{font-size:9px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.08em;margin-top:1px;}
+.ltitle{font-size:18px;font-weight:600;color:#fff;margin-bottom:3px;}
+.lsub{font-size:12px;color:rgba(255,255,255,.38);margin-bottom:24px;}
+.lfl{font-size:10px;font-weight:600;color:rgba(255,255,255,.4);letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px;}
+.linp{width:100%;padding:10px 13px;background:rgba(255,255,255,.07);border:0.5px solid rgba(192,132,252,.2);border-radius:var(--r);font-family:var(--font);font-size:13px;color:#fff;outline:none;margin-bottom:13px;transition:border-color .15s;}
+.linp::placeholder{color:rgba(255,255,255,.2);}
+.linp:focus{border-color:var(--acc);}
+.lbtn{width:100%;padding:11px;background:linear-gradient(135deg,var(--p),var(--pm));border:none;border-radius:var(--r);font-family:var(--font);font-size:13px;font-weight:600;color:#fff;cursor:pointer;transition:opacity .15s;}
+.lbtn:hover{opacity:.9;}
+.ldiv{text-align:center;font-size:11px;color:rgba(255,255,255,.2);margin:13px 0;}
+.lreg{width:100%;padding:9px;background:transparent;border:0.5px solid rgba(192,132,252,.18);border-radius:var(--r);font-family:var(--font);font-size:12px;color:rgba(255,255,255,.4);cursor:pointer;transition:all .15s;}
+.lreg:hover{border-color:var(--acc);color:#fff;}
+.ldemo{text-align:center;font-size:11px;color:rgba(255,255,255,.22);margin-top:16px;}
+.ldemo span{color:var(--acc);cursor:pointer;text-decoration:underline;}
+.lerr{background:rgba(220,38,38,.1);border:0.5px solid rgba(220,38,38,.3);border-radius:var(--r);padding:7px 12px;font-size:11.5px;color:#FCA5A5;margin-bottom:12px;display:none;}
+
+/* ══ REGISTER ══ */
+#s-reg{background:rgba(0,0,0,.65);align-items:center;justify-content:center;z-index:200;}
+.rcard{background:var(--white);border-radius:var(--rlg);padding:28px;width:100%;max-width:380px;animation:fup .3s ease;}
+.rtitle{font-size:16px;font-weight:600;margin-bottom:3px;}
+.rsub{font-size:12px;color:var(--muted);margin-bottom:18px;}
+.fld{margin-bottom:12px;}
+.fld label{display:block;font-size:10px;font-weight:700;color:var(--hint);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;}
+.fld input,.fld select{width:100%;padding:8px 11px;border:0.5px solid var(--g200);border-radius:var(--r);font-family:var(--font);font-size:13px;color:var(--text);background:var(--g50);outline:none;transition:border-color .15s;}
+.fld input:focus,.fld select:focus{border-color:var(--p);}
+.ract{display:flex;gap:8px;margin-top:6px;}
+
+/* ── BUTTONS ── */
+.btn{font-family:var(--font);font-size:12.5px;font-weight:500;padding:8px 16px;border-radius:var(--r);cursor:pointer;transition:all .15s;border:0.5px solid var(--g200);background:var(--white);color:var(--text);}
+.btn:hover{background:var(--g100);}
+.btn-p{background:var(--p);color:#fff;border-color:var(--p);}
+.btn-p:hover{background:var(--pd);}
+.btn-sm{font-size:11.5px;padding:6px 13px;}
+.btn-xs{font-size:11px;padding:4px 10px;}
+
+/* ══ APP ══ */
+#s-app{flex-direction:column;}
+.topbar{height:50px;background:var(--pdd);display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0;}
+.tlogo{display:flex;align-items:center;gap:9px;}
+.tlic{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--pm),var(--acc));display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.tlname{font-family:var(--serif);font-size:15px;color:#fff;font-weight:600;}
+.tsp{flex:1;}
+.tbtn{font-size:11px;color:rgba(255,255,255,.55);background:rgba(255,255,255,.08);border:0.5px solid rgba(255,255,255,.15);border-radius:var(--r);padding:5px 11px;cursor:pointer;font-family:var(--font);transition:all .15s;}
+.tbtn:hover{background:rgba(255,255,255,.15);color:#fff;}
+.tpill{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.08);border-radius:99px;padding:3px 11px 3px 5px;}
+.tav{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--acc),var(--p));display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;}
+.tun{font-size:11.5px;color:rgba(255,255,255,.7);}
+.tlo{font-size:11px;color:rgba(255,255,255,.3);background:none;border:none;font-family:var(--font);cursor:pointer;padding:4px 8px;border-radius:var(--r);transition:all .15s;}
+.tlo:hover{color:#fff;background:rgba(255,255,255,.1);}
+.appbody{display:flex;flex:1;overflow:hidden;}
+
+/* ── SIDEBAR ── */
+.sidebar{width:252px;background:var(--white);border-right:0.5px solid var(--bdr);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;}
+.sprogblock{padding:12px 14px;border-bottom:0.5px solid var(--bdr);}
+.spr{display:flex;justify-content:space-between;font-size:10.5px;color:var(--hint);margin-bottom:5px;}
+.spct{font-weight:700;color:var(--p);}
+.sbarr{height:4px;background:var(--g200);border-radius:99px;}
+.sfill{height:4px;background:var(--p);border-radius:99px;transition:width .5s;}
+.course-hdr{padding:10px 14px 5px;display:flex;align-items:center;gap:8px;}
+.course-badge{font-size:9px;font-weight:700;background:var(--pl);color:var(--pd);padding:2px 8px;border-radius:99px;letter-spacing:.04em;}
+.course-name{font-size:11px;font-weight:600;color:var(--muted);}
+.mlist{flex:1;overflow-y:auto;padding-bottom:10px;}
+.mitem{display:flex;align-items:center;gap:8px;padding:7px 14px;cursor:pointer;border-left:2px solid transparent;transition:all .15s;}
+.mitem:hover{background:var(--pale);}
+.mitem.on{background:var(--pl);border-left-color:var(--p);}
+.mic{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;}
+.id{background:var(--pl);color:var(--pd);}
+.ia{background:var(--p);color:#fff;}
+.ip{background:var(--g100);color:var(--hint);}
+.mtxt{flex:1;min-width:0;}
+.mn{font-size:11.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.md{font-size:9.5px;color:var(--hint);margin-top:1px;}
+.mq{font-size:9px;color:var(--p);margin-top:1px;font-weight:600;}
+
+/* ── MAIN ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.ntabs{display:flex;background:var(--white);border-bottom:0.5px solid var(--bdr);padding:0 16px;flex-shrink:0;}
+.ntab{padding:12px 4px;margin-right:16px;font-size:12px;font-weight:500;color:var(--hint);border-bottom:2px solid transparent;cursor:pointer;transition:all .15s;}
+.ntab:hover{color:var(--muted);}
+.ntab.on{color:var(--p);border-bottom-color:var(--p);}
+.view{display:none;flex:1;flex-direction:column;overflow:hidden;}
+.view.on{display:flex;}
+
+/* stats */
+.statsbar{display:flex;gap:8px;padding:8px 16px;background:var(--pale);border-bottom:0.5px solid var(--bdr);flex-shrink:0;flex-wrap:wrap;}
+.sc{background:var(--white);border:0.5px solid var(--bdr);border-radius:var(--r);padding:6px 12px;}
+.sv{font-size:14px;font-weight:700;color:var(--text);}
+.sl{font-size:9px;color:var(--hint);margin-top:1px;}
+
+/* ── VIDEO VIEW ── */
+.vhdr{padding:13px 16px 10px;background:var(--white);border-bottom:0.5px solid var(--bdr);flex-shrink:0;}
+.vhdr h2{font-size:14px;font-weight:600;}
+.vhdr p{font-size:11px;color:var(--muted);margin-top:2px;}
+.vtags{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap;}
+.tag{font-size:9px;font-weight:700;padding:2px 8px;border-radius:99px;}
+.tp{background:var(--pl);color:var(--pd);}
+.tg{background:var(--gl);color:var(--green);}
+.ta{background:var(--al);color:var(--amber);}
+
+/* video player */
+.vwrap{flex:1;background:#09060f;display:flex;flex-direction:column;min-height:0;position:relative;}
+.vplayer{width:100%;height:100%;object-fit:contain;display:none;}
+.vph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:0;}
+.vph-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(108,63,212,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(108,63,212,.07) 1px,transparent 1px);background-size:34px 34px;}
+.vph-glow{position:absolute;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(108,63,212,.18),transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);}
+.vph-center{position:relative;text-align:center;}
+.vplay{width:64px;height:64px;border-radius:50%;border:1.5px solid rgba(139,92,246,.45);background:rgba(108,63,212,.12);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;cursor:pointer;transition:all .2s;}
+.vplay:hover{background:rgba(108,63,212,.22);border-color:var(--pm);transform:scale(1.06);}
+.vtri{width:0;height:0;border-left:20px solid var(--pm);border-top:13px solid transparent;border-bottom:13px solid transparent;margin-left:4px;}
+.vph-lbl{font-size:13px;color:rgba(255,255,255,.45);font-weight:500;}
+.vph-sub{font-size:11px;color:rgba(255,255,255,.22);margin-top:3px;}
+.vbadge{position:absolute;top:10px;right:10px;background:rgba(108,63,212,.2);border:0.5px solid rgba(139,92,246,.3);color:var(--pm);font-size:9px;font-weight:700;padding:3px 8px;border-radius:99px;}
+
+/* admin upload row */
+.vadmin{padding:7px 16px;background:var(--pale);border-bottom:0.5px solid var(--bdr);display:none;align-items:center;gap:8px;flex-shrink:0;}
+.vadmin.show{display:flex;}
+.vadmin-lbl{font-size:10.5px;color:var(--hint);white-space:nowrap;}
+.vfile-input{display:none;}
+.vfile-btn{font-size:11px;padding:5px 11px;border-radius:var(--r);border:0.5px solid var(--bdrm);background:var(--white);color:var(--p);cursor:pointer;font-family:var(--font);font-weight:500;transition:all .15s;white-space:nowrap;}
+.vfile-btn:hover{background:var(--pl);}
+.vfile-name{font-size:10.5px;color:var(--muted);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+.vfoot{padding:10px 16px;background:var(--white);border-top:0.5px solid var(--bdr);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
+
+/* ── QUIZ ── */
+.qscroll{flex:1;overflow-y:auto;padding:16px;}
+.qpb{height:3px;background:var(--g200);border-radius:99px;margin-bottom:15px;}
+.qpf{height:3px;background:var(--p);border-radius:99px;transition:width .4s;}
+.qnum{font-size:10px;font-weight:700;color:var(--hint);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;}
+.qtxt{font-size:15px;font-weight:600;line-height:1.55;margin-bottom:13px;}
+.opt{display:flex;align-items:flex-start;gap:9px;padding:10px 12px;border:0.5px solid var(--g200);border-radius:var(--r);margin-bottom:7px;cursor:pointer;transition:all .15s;background:var(--white);}
+.opt:hover{border-color:var(--p);background:var(--pale);}
+.opt.correct{border-color:var(--p);background:var(--pl);}
+.opt.wrong{border-color:var(--red);background:var(--rl);}
+.ol{width:22px;height:22px;border-radius:50%;border:0.5px solid var(--g200);background:var(--g50);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--hint);flex-shrink:0;}
+.opt.correct .ol{background:var(--p);border-color:var(--p);color:#fff;}
+.opt.wrong .ol{background:var(--red);border-color:var(--red);color:#fff;}
+.ot{font-size:13px;line-height:1.45;padding-top:2px;}
+.fb{padding:10px 12px;border-radius:var(--r);font-size:12px;line-height:1.55;margin-top:7px;}
+.fbok{background:var(--pl);color:var(--pdd);border:0.5px solid rgba(108,63,212,.2);}
+.fberr{background:var(--rl);color:#7f1d1d;border:0.5px solid rgba(220,38,38,.2);}
+.qfoot{padding:10px 16px;background:var(--white);border-top:0.5px solid var(--bdr);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
+.qctr{font-size:11px;color:var(--hint);}
+
+/* result */
+.rscreen{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;padding:20px;text-align:center;}
+.sring{width:90px;height:90px;border-radius:50%;border:3px solid var(--p);display:flex;align-items:center;justify-content:center;flex-direction:column;}
+.sbig{font-size:24px;font-weight:700;color:var(--p);}
+.slbl2{font-size:9px;color:var(--hint);}
+.rt{font-family:var(--serif);font-size:20px;color:var(--text);font-style:italic;}
+.rs{font-size:13px;color:var(--muted);}
+
+/* ── AI ── */
+.achat{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:9px;}
+.bubble{max-width:84%;padding:9px 12px;border-radius:var(--rlg);font-size:13px;line-height:1.55;}
+.bubble.ai{background:var(--white);border:0.5px solid var(--bdr);color:var(--text);align-self:flex-start;border-bottom-left-radius:4px;}
+.bubble.user{background:var(--p);color:#fff;align-self:flex-end;border-bottom-right-radius:4px;}
+.bubble.loading{color:var(--hint);font-style:italic;font-size:12px;}
+.afoot{padding:10px 16px;background:var(--white);border-top:0.5px solid var(--bdr);display:flex;gap:7px;flex-shrink:0;}
+.ainp{flex:1;padding:8px 12px;border:0.5px solid var(--g200);border-radius:var(--r);font-family:var(--font);font-size:13px;color:var(--text);background:var(--g50);outline:none;transition:border-color .15s;}
+.ainp:focus{border-color:var(--p);background:var(--white);}
+.sugs{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px;}
+.sug{font-size:10.5px;padding:3px 9px;border-radius:99px;border:0.5px solid var(--bdrm);background:var(--white);color:var(--muted);cursor:pointer;transition:all .15s;font-family:var(--font);}
+.sug:hover{background:var(--pl);border-color:var(--p);color:var(--pd);}
+
+/* ══ PROGRESS SCREEN ══ */
+#s-prog{flex-direction:column;background:var(--g50);}
+.ptop{height:50px;background:var(--pdd);display:flex;align-items:center;padding:0 18px;gap:12px;flex-shrink:0;}
+.ptopname{font-family:var(--serif);font-size:15px;color:#fff;font-weight:600;}
+.pbody{flex:1;overflow-y:auto;padding:18px;}
+
+/* hero card */
+.phero{background:var(--white);border:0.5px solid var(--bdr);border-radius:var(--rlg);padding:18px;margin-bottom:14px;display:flex;align-items:center;gap:16px;}
+.phav{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--pm),var(--acc));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;flex-shrink:0;}
+.phname{font-size:15px;font-weight:700;}
+.phsub{font-size:11px;color:var(--hint);margin-top:2px;}
+.phring-wrap{margin-left:auto;text-align:center;}
+.phring{width:66px;height:66px;border-radius:50%;border:3px solid var(--p);display:flex;align-items:center;justify-content:center;flex-direction:column;}
+.phrn{font-size:20px;font-weight:700;color:var(--p);}
+.phrl{font-size:9px;color:var(--hint);}
+
+/* course progress card */
+.pcourse{background:var(--white);border:0.5px solid var(--bdr);border-radius:var(--rlg);padding:15px 16px;margin-bottom:10px;}
+.pchdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.pcname{font-size:13px;font-weight:600;}
+.pcpct{font-size:13px;font-weight:700;color:var(--p);}
+.pcbar{height:4px;background:var(--g200);border-radius:99px;margin-bottom:10px;}
+.pcfill{height:4px;background:var(--p);border-radius:99px;}
+
+/* mod table */
+.modtable{width:100%;border-collapse:collapse;font-size:12px;}
+.modtable th{text-align:left;font-size:9.5px;font-weight:700;color:var(--hint);text-transform:uppercase;letter-spacing:.06em;padding:0 0 6px;border-bottom:0.5px solid var(--bdr);}
+.modtable th:last-child{text-align:center;}
+.modtable td{padding:7px 0;border-bottom:0.5px solid var(--bdr);color:var(--muted);vertical-align:middle;}
+.modtable td:first-child{color:var(--text);font-weight:500;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.modtable td:last-child{text-align:center;}
+.badge-done{background:var(--gl);color:var(--green);font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:99px;display:inline-block;}
+.badge-pend{background:var(--g100);color:var(--hint);font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:99px;display:inline-block;}
+.score-pill{background:var(--pl);color:var(--pd);font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;display:inline-block;}
+.score-na{color:var(--hint);font-size:11px;}
+
+/* avg row */
+.avg-row{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:8px;border-top:1.5px solid var(--bdr);}
+.avg-lbl{font-size:11px;font-weight:600;color:var(--muted);}
+.avg-val{font-size:13px;font-weight:700;color:var(--p);}
+
+/* ══ ADMIN PANEL ══ */
+#s-admin{flex-direction:column;background:var(--g50);}
+.atop{height:50px;background:var(--pdd);display:flex;align-items:center;padding:0 18px;gap:12px;flex-shrink:0;}
+.atitle{font-family:var(--serif);font-size:15px;color:#fff;font-weight:600;}
+.abody{flex:1;overflow-y:auto;padding:18px;}
+.agrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:18px;}
+.acard{background:var(--white);border:0.5px solid var(--bdr);border-radius:var(--rlg);padding:14px 16px;}
+.aval{font-size:26px;font-weight:700;color:var(--p);}
+.albl{font-size:10px;color:var(--hint);margin-top:2px;}
+.asec{font-size:13px;font-weight:600;color:var(--text);margin:16px 0 9px;}
+
+/* student rows */
+.strow{background:var(--white);border:0.5px solid var(--bdr);border-radius:var(--r);padding:11px 15px;margin-bottom:7px;display:flex;align-items:center;gap:13px;cursor:pointer;transition:background .15s;}
+.strow:hover{background:var(--pale);}
+.stav2{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--pm),var(--acc));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;}
+.stinfo{flex:1;min-width:0;}
+.stname{font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.stspec{font-size:10.5px;color:var(--hint);margin-top:1px;}
+.stpw{width:120px;flex-shrink:0;}
+.stpct{font-size:11px;font-weight:700;color:var(--p);margin-bottom:3px;}
+.stpbar{height:4px;background:var(--g200);border-radius:99px;}
+.stpfill{height:4px;background:var(--p);border-radius:99px;}
+
+/* video status table */
+.vtable{width:100%;border-collapse:collapse;font-size:12px;}
+.vtable th{text-align:left;font-size:9.5px;font-weight:700;color:var(--hint);text-transform:uppercase;letter-spacing:.06em;padding:0 0 6px;border-bottom:0.5px solid var(--bdr);}
+.vtable td{padding:7px 0;border-bottom:0.5px solid var(--bdr);color:var(--muted);vertical-align:middle;}
+.vtable td:first-child{color:var(--text);font-weight:500;}
+.vstat-ok{color:var(--green);font-size:11px;font-weight:600;}
+.vstat-no{color:var(--hint);font-size:11px;}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div id="s-login" class="screen on">
+  <div class="lb"></div><div class="ld"></div>
+  <div class="lcard">
+    <div class="llogo">
+      <div class="lic"><svg width="22" height="22" viewBox="0 0 26 26" fill="none"><ellipse cx="13" cy="10" rx="7" ry="5" stroke="white" stroke-width="1.5"/><circle cx="13" cy="10" r="2.5" fill="white"/><path d="M6 14 Q4 18 6 20 Q8 22 10 20" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/><path d="M20 14 Q22 18 20 20 Q18 22 16 20" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/><path d="M9 20 Q13 24 17 20" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div>
+      <div><div class="lname">DiagnosticVet</div><div class="ltag">Educación clínica veterinaria</div></div>
+    </div>
+    <div class="ltitle">Bienvenido</div>
+    <div class="lsub">Ingresa para continuar tu aprendizaje</div>
+    <div class="lerr" id="lerr">Correo o contraseña incorrectos.</div>
+    <div class="lfl">Correo electrónico</div>
+    <input class="linp" id="l-email" type="email" placeholder="tu@correo.com"/>
+    <div class="lfl">Contraseña</div>
+    <input class="linp" id="l-pass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/>
+    <button class="lbtn" onclick="doLogin()">Ingresar</button>
+    <div class="ldiv">¿No tienes cuenta?</div>
+    <button class="lreg" onclick="showScreen('s-reg')">Crear cuenta gratuita</button>
+    <div class="ldemo">Demo: <span onclick="demoAdmin()">entrar como admin</span> &nbsp;·&nbsp; <span onclick="demoStudent()">entrar como estudiante</span></div>
+  </div>
+</div>
+
+<!-- ══ REGISTER ══ -->
+<div id="s-reg" class="screen">
+  <div class="rcard">
+    <div class="rtitle">Crear cuenta</div>
+    <div class="rsub">Únete a DiagnosticVet — es gratis</div>
+    <div class="fld"><label>Nombre completo</label><input id="r-name" type="text" placeholder="Dr. Ana García"/></div>
+    <div class="fld"><label>Correo electrónico</label><input id="r-email" type="email" placeholder="tu@correo.com"/></div>
+    <div class="fld"><label>Contraseña</label><input id="r-pass" type="password" placeholder="Mínimo 6 caracteres"/></div>
+    <div class="fld"><label>Especialidad</label>
+      <select id="r-spec">
+        <option>Clínica de pequeños animales</option>
+        <option>Medicina interna veterinaria</option>
+        <option>Cuidado crítico / UCI</option>
+        <option>Estudiante de veterinaria</option>
+        <option>Otra especialidad</option>
+      </select>
+    </div>
+    <div class="ract">
+      <button class="btn" onclick="hideScreen('s-reg')">Cancelar</button>
+      <button class="btn btn-p" onclick="doRegister()">Crear cuenta</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="s-app" class="screen">
+  <div class="topbar">
+    <div class="tlogo">
+      <div class="tlic"><svg width="16" height="16" viewBox="0 0 26 26" fill="none"><ellipse cx="13" cy="10" rx="7" ry="5" stroke="white" stroke-width="1.5"/><circle cx="13" cy="10" r="2.5" fill="white"/><path d="M6 14 Q4 18 6 20 Q8 22 10 20" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/><path d="M20 14 Q22 18 20 20 Q18 22 16 20" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/><path d="M9 20 Q13 24 17 20" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div>
+      <div class="tlname">DiagnosticVet</div>
+    </div>
+    <div class="tsp"></div>
+    <button class="tbtn" id="btn-admin" style="display:none" onclick="openAdmin()">Panel admin</button>
+    <button class="tbtn" onclick="openProgress()">Mi progreso</button>
+    <div class="tpill">
+      <div class="tav" id="tav">?</div>
+      <div class="tun" id="tun">—</div>
+    </div>
+    <button class="tlo" onclick="doLogout()">Salir</button>
+  </div>
+
+  <div class="appbody">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sprogblock">
+        <div class="spr"><span>Progreso del curso</span><span class="spct" id="spct">0%</span></div>
+        <div class="sbarr"><div class="sfill" id="sfill" style="width:0%"></div></div>
+      </div>
+      <div class="course-hdr">
+        <div class="course-badge">MVP</div>
+        <div class="course-name">Gases sanguíneos</div>
+      </div>
+      <div class="mlist" id="mlist"></div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+      <div class="statsbar">
+        <div class="sc"><div class="sv" id="ss-done">0</div><div class="sl">Clases vistas</div></div>
+        <div class="sc"><div class="sv" id="ss-tot">10</div><div class="sl">Total clases</div></div>
+        <div class="sc"><div class="sv" id="ss-score">—</div><div class="sl">Último examen</div></div>
+        <div class="sc"><div class="sv" id="ss-avg">—</div><div class="sl">Promedio general</div></div>
+      </div>
+      <div class="ntabs">
+        <div class="ntab on" onclick="swTab('video',this)">▶ Clase</div>
+        <div class="ntab" onclick="swTab('quiz',this)">Examen</div>
+        <div class="ntab" onclick="swTab('ai',this)">Tutor IA</div>
+      </div>
+
+      <!-- VIDEO -->
+      <div class="view on" id="v-video">
+        <div class="vhdr">
+          <h2 id="vh-t">—</h2>
+          <p id="vh-d">—</p>
+          <div class="vtags">
+            <span class="tag tp" id="vh-dur">—</span>
+            <span class="tag tg" id="vh-num">—</span>
+            <span class="tag ta" id="vh-status">—</span>
+          </div>
+        </div>
+        <!-- Admin upload row -->
+        <div class="vadmin" id="vadmin">
+          <span class="vadmin-lbl">Admin — cargar video:</span>
+          <button class="vfile-btn" onclick="document.getElementById('vfile').click()">Seleccionar MP4</button>
+          <input type="file" id="vfile" class="vfile-input" accept="video/mp4,video/*" onchange="onFileSelect(event)"/>
+          <span class="vfile-name" id="vfile-name">Sin video cargado para esta clase</span>
+        </div>
+        <!-- Video wrap -->
+        <div class="vwrap" id="vwrap">
+          <div class="vph" id="vph">
+            <div class="vph-grid"></div><div class="vph-glow"></div>
+            <div class="vbadge" id="vbadge" style="display:none">✓ Vista</div>
+            <div class="vph-center">
+              <div class="vplay" id="vplay-btn" onclick="playVideo()"><div class="vtri"></div></div>
+              <div class="vph-lbl" id="vph-lbl">Haz clic para reproducir</div>
+              <div class="vph-sub" id="vph-sub">—</div>
+            </div>
+          </div>
+          <video id="vplayer" class="vplayer" controls onended="onVideoEnd()"></video>
+        </div>
+        <div class="vfoot">
+          <button class="btn btn-sm" onclick="prevMod()">← Anterior</button>
+          <button class="btn btn-p btn-sm" onclick="markWatched()">Marcar como vista ✓</button>
+          <button class="btn btn-sm" onclick="nextMod()">Siguiente →</button>
+        </div>
+      </div>
+
+      <!-- QUIZ -->
+      <div class="view" id="v-quiz">
+        <div id="qi" style="display:flex;flex-direction:column;height:100%;overflow:hidden;"></div>
+      </div>
+
+      <!-- AI -->
+      <div class="view" id="v-ai">
+        <div class="achat" id="achat">
+          <div class="bubble ai">Hola, soy tu tutor de gasometría veterinaria. Estoy aquí para ayudarte con cualquier duda sobre el módulo que estás viendo.<br><br>¿Qué quieres aprender?</div>
+          <div class="sugs" id="asugs">
+            <span class="sug" onclick="askS('¿Cómo interpreto un pH de 7.25 en un perro?')">pH 7.25 en perro</span>
+            <span class="sug" onclick="askS('¿Cuál es la diferencia entre acidosis respiratoria y metabólica?')">Acidosis resp. vs metabólica</span>
+            <span class="sug" onclick="askS('¿Cómo aplico la fórmula de Winter en un caso clínico?')">Fórmula de Winter</span>
+            <span class="sug" onclick="askS('Dame un ejemplo clínico de hipoxemia en gatos')">Hipoxemia en gatos</span>
+          </div>
+        </div>
+        <div class="afoot">
+          <input class="ainp" id="ainp" placeholder="Escribe tu duda sobre el módulo..." onkeydown="if(event.key==='Enter')sendAI()"/>
+          <button class="btn btn-p btn-sm" onclick="sendAI()">Enviar</button>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- ══ PROGRESS SCREEN ══ -->
+<div id="s-prog" class="screen">
+  <div class="ptop">
+    <div class="tlic"><svg width="16" height="16" viewBox="0 0 26 26" fill="none"><ellipse cx="13" cy="10" rx="7" ry="5" stroke="white" stroke-width="1.5"/><circle cx="13" cy="10" r="2.5" fill="white"/></svg></div>
+    <div class="ptopname">Mi progreso</div>
+    <div style="flex:1"></div>
+    <button class="tbtn" onclick="hideScreen('s-prog')">← Volver al curso</button>
+  </div>
+  <div class="pbody" id="pbody"></div>
+</div>
+
+<!-- ══ ADMIN PANEL ══ -->
+<div id="s-admin" class="screen">
+  <div class="atop">
+    <div class="tlic"><svg width="16" height="16" viewBox="0 0 26 26" fill="none"><ellipse cx="13" cy="10" rx="7" ry="5" stroke="white" stroke-width="1.5"/><circle cx="13" cy="10" r="2.5" fill="white"/></svg></div>
+    <div class="atitle">Panel de administrador</div>
+    <div style="flex:1"></div>
+    <button class="tbtn" onclick="hideScreen('s-admin')">← Volver al curso</button>
+  </div>
+  <div class="abody" id="abody"></div>
+</div>
+
+<script>
+// ══ STORAGE ══
+const LS={get:k=>JSON.parse(localStorage.getItem(k)||'null'),set:(k,v)=>localStorage.setItem(k,JSON.stringify(v))};
+const K={users:'dv_u',prog:'dv_p',scores:'dv_s',videos:'dv_v'};
+
+// ══ MODULES ══
+const MODS=[
+  {t:'Introducción a la gasometría',d:'¿Qué son los gases sanguíneos y para qué sirven?',dur:'8 min'},
+  {t:'Toma de muestra arterial',d:'Técnica en arteria femoral, metatarsal y auricular',dur:'7 min'},
+  {t:'pH y equilibrio ácido-base',d:'Valores normales en perros, gatos y animales de granja',dur:'10 min'},
+  {t:'PaCO2 y ventilación alveolar',d:'Hipercapnia, hipocapnia y su significado clínico',dur:'9 min'},
+  {t:'HCO3 y componente metabólico',d:'Bicarbonato, exceso de base y compensación renal',dur:'11 min'},
+  {t:'PaO2 y oxigenación',d:'Hipoxemia: clasificación, gradiente A-a y causas',dur:'10 min'},
+  {t:'Acidosis respiratoria',d:'Causas más frecuentes en perros y gatos, diagnóstico y manejo',dur:'12 min'},
+  {t:'Acidosis y alcalosis metabólica',d:'Anión gap veterinario, cetoacidosis diabética felina y manejo',dur:'13 min'},
+  {t:'Trastornos mixtos',d:'Reconocimiento y estrategia diagnóstica paso a paso',dur:'11 min'},
+  {t:'Casos clínicos integrados',d:'10 casos reales: UCI, emergencias y exóticos',dur:'15 min'},
+];
+
+// ══ QUIZ — 3 preguntas por módulo ══
+const QUIZ=[
+  // M0
+  [{q:'¿Cuál es el objetivo principal de la gasometría arterial?',o:['Medir la glucosa sanguínea','Evaluar el intercambio gaseoso y el equilibrio ácido-base','Detectar anemia','Medir la creatinina'],c:1,e:'La gasometría evalúa el intercambio gaseoso (PaO2, SaO2) y el equilibrio ácido-base (pH, PaCO2, HCO3) en sangre arterial.'},
+   {q:'¿Qué tipo de muestra se usa para gasometría?',o:['Sangre venosa periférica','Sangre capilar','Sangre arterial','Líquido cefalorraquídeo'],c:2,e:'Se requiere sangre arterial porque refleja la función pulmonar y el estado ácido-base sistémico antes de la extracción tisular de O2.'},
+   {q:'¿Cuál de los siguientes parámetros NO forma parte de la gasometría básica?',o:['pH','PaCO2','Glucosa','HCO3'],c:2,e:'La glucosa no es un parámetro gasométrico estándar. Los básicos son: pH, PaCO2, PaO2, HCO3, BE y SaO2.'}],
+  // M1
+  [{q:'¿Cuál es el sitio de punción arterial más frecuente en perros?',o:['Arteria carótida','Arteria femoral','Arteria radial','Arteria mesentérica'],c:1,e:'La arteria femoral (triángulo femoral medial) es el sitio más accesible y frecuente para gasometría en perros por su buen calibre y pulsación palpable.'},
+   {q:'¿Por qué se hepariniza la jeringa antes de la punción arterial?',o:['Para diluir la muestra','Para evitar la coagulación de la muestra','Para calmar al animal','Para desinfectar'],c:1,e:'La heparina previene la coagulación de la muestra arterial. Se usa heparina de litio en mínima cantidad para no alterar los valores.'},
+   {q:'¿Cuánto tiempo de compresión se aplica tras la punción arterial en perros?',o:['30 segundos','1 minuto','Al menos 3–5 minutos','No se necesita compresión'],c:2,e:'Se recomienda compresión firme de 3–5 minutos sobre el sitio de punción para evitar formación de hematoma y daño a tejidos.'}],
+  // M2
+  [{q:'¿Cuál es el rango normal de pH arterial en perros?',o:['7.20–7.30','7.35–7.45','7.45–7.55','7.25–7.40'],c:1,e:'El pH arterial normal en perros es 7.35–7.45. En gatos es ligeramente más estrecho: 7.36–7.44.'},
+   {q:'Un pH de 7.28 se denomina:',o:['Alcalemia leve','Valor normal','Acidemia','Alcalosis compensada'],c:2,e:'Cualquier pH por debajo de 7.35 se denomina acidemia. 7.28 es una acidemia moderada que requiere identificar su causa.'},
+   {q:'¿Qué indica un pH > 7.45?',o:['Acidemia','Valor normal alto','Alcalemia','Error de laboratorio'],c:2,e:'Un pH mayor de 7.45 indica alcalemia. El organismo normalmente regula el pH con gran precisión; valores fuera del rango son siempre patológicos.'}],
+  // M3
+  [{q:'¿Cuál es el valor normal de PaCO2 en perros?',o:['20–30 mmHg','35–45 mmHg','50–60 mmHg','60–75 mmHg'],c:1,e:'La PaCO2 normal en perros es 35–45 mmHg. Valores mayores indican hipoventilación (hipercapnia) y menores, hiperventilación (hipocapnia).'},
+   {q:'PaCO2 elevada con pH bajo indica:',o:['Alcalosis metabólica','Acidosis respiratoria','Alcalosis respiratoria','Acidosis metabólica pura'],c:1,e:'PaCO2 alta + pH bajo = acidosis respiratoria. El exceso de CO2 se convierte en ácido carbónico, disminuyendo el pH.'},
+   {q:'La hipocapnia (PaCO2 < 35 mmHg) se produce por:',o:['Hipoventilación','Obstrucción de vías aéreas','Hiperventilación','Insuficiencia renal'],c:2,e:'La hiperventilación elimina CO2 en exceso (hipocapnia), causando alcalosis respiratoria. Causas: ansiedad, dolor, lesión SNC, hipoxemia.'}],
+  // M4
+  [{q:'¿Cuál es el HCO3 normal en pequeños animales?',o:['12–17 mEq/L','22–26 mEq/L','28–34 mEq/L','16–20 mEq/L'],c:1,e:'El HCO3 normal es 22–26 mEq/L en perros y gatos. Es el principal tampón del sistema metabólico del equilibrio ácido-base.'},
+   {q:'En acidosis metabólica, el HCO3:',o:['Aumenta compensatoriamente','Se mantiene normal','Disminuye','Aumenta y luego baja'],c:2,e:'En acidosis metabólica el HCO3 disminuye porque se consume para tamponar el exceso de ácidos fijos acumulados.'},
+   {q:'El exceso de base (BE) normal es aproximadamente:',o:['-10 a -5 mEq/L','0 ± 4 mEq/L','+5 a +10 mEq/L','+10 a +15 mEq/L'],c:1,e:'El BE normal es 0 ± 4 mEq/L. Negativo indica acidosis metabólica (déficit de base) y positivo indica alcalosis metabólica.'}],
+  // M5
+  [{q:'¿Qué PaO2 define hipoxemia significativa en perros?',o:['< 80 mmHg','< 60 mmHg','< 40 mmHg','< 50 mmHg'],c:1,e:'PaO2 < 60 mmHg define hipoxemia clínicamente significativa. A este nivel la saturación cae bruscamente por la forma sigmoidea de la curva de disociación.'},
+   {q:'La insuficiencia respiratoria tipo I se caracteriza por:',o:['PaO2 baja + PaCO2 alta','PaO2 baja + PaCO2 normal o baja','PaO2 alta + PaCO2 baja','PaO2 y PaCO2 normales'],c:1,e:'IR tipo I (hipoxémica): PaO2 baja con PaCO2 normal o baja. El pulmón no oxigena adecuadamente pero la ventilación se mantiene (o está aumentada).'},
+   {q:'SpO2 normal en perros respirando aire ambiente:',o:['85–90%','90–94%','95–100%','100% siempre'],c:2,e:'La SpO2 normal en perros es 95–100%. Valores menores de 95% requieren evaluación y posiblemente suplementación de oxígeno.'}],
+  // M6
+  [{q:'Causa más frecuente de acidosis respiratoria AGUDA en gatos:',o:['Hiperventilación por dolor','Asma felina / broncoespasmo','Alcalosis metabólica previa','Diarrea crónica'],c:1,e:'El broncoespasmo del asma felina impide la eliminación de CO2, produciendo hipercapnia y acidosis respiratoria aguda.'},
+   {q:'En acidosis respiratoria crónica, el riñón compensa:',o:['Eliminando HCO3','Reteniendo HCO3','Produciendo más CO2','Eliminando H+ en exceso'],c:1,e:'El riñón compensa la acidosis respiratoria crónica reteniendo bicarbonato (HCO3) para elevar el pH hacia lo normal.'},
+   {q:'Un gato con EPOC crónico tendrá típicamente:',o:['pH bajo, PaCO2 baja, HCO3 normal','pH normal-bajo, PaCO2 alta, HCO3 alta','pH alto, PaCO2 alta, HCO3 baja','pH y gases normales'],c:1,e:'EPOC crónico: pH normal-bajo + PaCO2 elevada + HCO3 elevado (compensación renal) = acidosis respiratoria crónica compensada.'}],
+  // M7
+  [{q:'La cetoacidosis diabética (CAD) en gatos causa:',o:['Alcalosis metabólica','Acidosis metabólica con anión gap elevado','Acidosis metabólica con anión gap normal','Alcalosis respiratoria'],c:1,e:'La CAD acumula cetoácidos (betahidroxibutirato, acetoacetato) que aumentan el anión gap, causando acidosis metabólica de AG elevado.'},
+   {q:'El anión gap normal en pequeños animales es:',o:['5–10 mEq/L','12–24 mEq/L','25–35 mEq/L','1–5 mEq/L'],c:1,e:'El anión gap normal en perros y gatos es 12–24 mEq/L. Valores mayores indican presencia de ácidos no medidos (lactato, cetonas, toxinas).'},
+   {q:'La diarrea severa produce acidosis metabólica con anión gap:',o:['Elevado (>24)','Normal (12–24)','Disminuido (<12)','Variable según la causa'],c:1,e:'La diarrea pierde HCO3 que se reemplaza con Cl⁻, causando acidosis hiperclorémica con anión gap NORMAL. Clásico ejemplo de AG normal.'}],
+  // M8
+  [{q:'¿Cuándo sospechar un trastorno mixto?',o:['Siempre que el pH sea normal','Cuando la compensación esperada no coincide con la medida','Solo cuando hay fiebre','Cuando el anión gap es normal'],c:1,e:'Si la compensación calculada (ej: fórmula de Winter) no coincide con la medida, existe un segundo trastorno superpuesto: trastorno mixto.'},
+   {q:'pH 7.28, PaCO2 55, HCO3 11. ¿Cuál es el diagnóstico?',o:['Acidosis respiratoria pura','Acidosis metabólica compensada','Trastorno mixto: acidosis resp. + acidosis met.','Alcalosis mixta'],c:2,e:'PaCO2 alta (acidosis respiratoria) + HCO3 bajo (acidosis metabólica) + pH muy bajo = trastorno mixto de doble componente acidótico.'},
+   {q:'La fórmula de Winter calcula:',o:['PaO2 esperada en hipoxemia','PaCO2 esperada en acidosis metabólica','HCO3 esperado en alcalosis','BE en trastornos mixtos'],c:1,e:'Fórmula de Winter: PaCO2 esperada = 1.5 × HCO3 + 8 ± 2. Verifica si la compensación respiratoria es adecuada en acidosis metabólica.'}],
+  // M9
+  [{q:'Primer paso al interpretar una gasometría:',o:['Ver PaCO2','Evaluar el pH (acidemia vs alcalemia)','Calcular el anión gap','Ver HCO3'],c:1,e:'El primer paso siempre es evaluar el pH: ¿hay acidemia (<7.35) o alcalemia (>7.45)? Esto orienta todo el análisis posterior.'},
+   {q:'Un perro con uroabdomen (orina libre en peritoneo) tendrá:',o:['Alcalosis metabólica','Acidosis respiratoria','Acidosis metabólica hiperclorémica','pH normal siempre'],c:2,e:'El uroabdomen causa reabsorción de orina peritoneal → hipercloremia, hiperkalemia y acidosis metabólica de anión gap normal.'},
+   {q:'Perro politraumatizado: pH 7.22, PaCO2 28, HCO3 10. Diagnóstico:',o:['Acidosis respiratoria compensada','Acidosis metabólica con compensación respiratoria adecuada','Alcalosis metabólica','Trastorno mixto alcalótico'],c:1,e:'pH bajo + HCO3 muy bajo (acidosis metabólica) + PaCO2 baja (hiperventilación compensatoria). La compensación es adecuada según Winter (PaCO2 esperada ≈ 23 mmHg).'}],
+];
+
+// ══ STATE ══
+let CU=null,CM=0,CQ=0,SA=null,ANS=false,QS=0,QD=false,AIH=[];
+let PROG=[],SCORES=[];
+// videoBlobs: object key=modIndex, value=blob URL (only in memory this session)
+const VBL={};
+
+// ══ SCREEN HELPERS ══
+function showScreen(id){document.getElementById(id).classList.add('on');}
+function hideScreen(id){document.getElementById(id).classList.remove('on');}
+function showOnly(id){['s-login','s-reg','s-app','s-admin','s-prog'].forEach(s=>document.getElementById(s).classList.remove('on'));showScreen(id);}
+
+// ══ AUTH ══
+function getUsers(){return LS.get(K.users)||[];}
+function saveUsers(u){LS.set(K.users,u);}
+
+function doLogin(){
+  const email=document.getElementById('l-email').value.trim();
+  const pass=document.getElementById('l-pass').value;
+  const u=getUsers().find(x=>x.email===email&&x.pass===pass);
+  if(!u){document.getElementById('lerr').style.display='block';return;}
+  document.getElementById('lerr').style.display='none';
+  launch(u);
+}
+function demoAdmin(){
+  let users=getUsers();
+  let u=users.find(x=>x.email==='admin@dv.com');
+  if(!u){u={name:'Dr. Admin DiagnosticVet',email:'admin@dv.com',pass:'admin123',spec:'Administrador',isAdmin:true};users.push(u);saveUsers(users);}
+  launch(u);
+}
+function demoStudent(){
+  let users=getUsers();
+  let u=users.find(x=>x.email==='demo@dv.com');
+  if(!u){u={name:'Est. Demo Veterinaria',email:'demo@dv.com',pass:'demo123',spec:'Estudiante de veterinaria',isAdmin:false};users.push(u);saveUsers(users);}
+  launch(u);
+}
+function doRegister(){
+  const name=document.getElementById('r-name').value.trim();
+  const email=document.getElementById('r-email').value.trim();
+  const pass=document.getElementById('r-pass').value;
+  const spec=document.getElementById('r-spec').value;
+  if(!name||!email||pass.length<6){alert('Completa todos los campos. La contraseña debe tener al menos 6 caracteres.');return;}
+  const users=getUsers();
+  if(users.find(x=>x.email===email)){alert('Este correo ya está registrado.');return;}
+  const u={name,email,pass,spec,isAdmin:false};
+  users.push(u);saveUsers(users);
+  hideScreen('s-reg');
+  launch(u);
+}
+function launch(u){
+  CU=u;
+  const ini=u.name.split(' ').map(x=>x[0]).join('').substring(0,2).toUpperCase();
+  document.getElementById('tav').textContent=ini;
+  document.getElementById('tun').textContent=u.name.split(' ').slice(0,2).join(' ');
+  document.getElementById('btn-admin').style.display=u.isAdmin?'inline-block':'none';
+  loadUserData();
+  showOnly('s-app');
+  renderAll();
+}
+function doLogout(){
+  CU=null;
+  showOnly('s-login');
+  document.getElementById('l-email').value='';
+  document.getElementById('l-pass').value='';
+}
+
+// ══ USER DATA ══
+function loadUserData(){
+  const allP=LS.get(K.prog)||{};
+  const allS=LS.get(K.scores)||{};
+  PROG=allP[CU.email]||new Array(MODS.length).fill(false);
+  SCORES=allS[CU.email]||new Array(MODS.length).fill(null);
+}
+function saveProg(){
+  const allP=LS.get(K.prog)||{};
+  allP[CU.email]=PROG;LS.set(K.prog,allP);
+}
+function saveScore(idx,pct){
+  SCORES[idx]=pct;
+  const allS=LS.get(K.scores)||{};
+  allS[CU.email]=SCORES;LS.set(K.scores,allS);
+}
+
+// ══ RENDER ══
+function renderAll(){renderList();updateStats();updateVideo();renderQuiz();}
+
+function renderList(){
+  const done=PROG.filter(Boolean).length;
+  const pct=Math.round(done/MODS.length*100);
+  document.getElementById('sfill').style.width=pct+'%';
+  document.getElementById('spct').textContent=pct+'%';
+  document.getElementById('mlist').innerHTML=MODS.map((m,i)=>{
+    const isA=i===CM,isDone=PROG[i];
+    const ic=isDone?'id':isA?'ia':'ip';
+    const sym=isDone?'✓':isA?'▶':i+1;
+    const sc=SCORES[i]!=null?`<div class="mq">Examen: ${SCORES[i]}%</div>`:'';
+    return `<div class="mitem ${isA?'on':''}" onclick="selMod(${i})">
+      <div class="mic ${ic}">${sym}</div>
+      <div class="mtxt"><div class="mn">${m.t}</div><div class="md">${m.dur}</div>${sc}</div>
+    </div>`;
+  }).join('');
+}
+
+function updateStats(){
+  const done=PROG.filter(Boolean).length;
+  document.getElementById('ss-done').textContent=done;
+  document.getElementById('ss-tot').textContent=MODS.length;
+  const sc=SCORES[CM];
+  document.getElementById('ss-score').textContent=sc!=null?sc+'%':'—';
+  const allSc=SCORES.filter(s=>s!=null);
+  document.getElementById('ss-avg').textContent=allSc.length?Math.round(allSc.reduce((a,b)=>a+b,0)/allSc.length)+'%':'—';
+}
+
+function selMod(i){
+  CM=i;resetQuiz();
+  // reset video
+  const pl=document.getElementById('vplayer');
+  pl.pause();pl.src='';pl.style.display='none';
+  document.getElementById('vph').style.display='flex';
+  renderAll();
+}
+
+function swTab(tab,el){
+  document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+  document.getElementById('v-'+tab).classList.add('on');
+  if(tab==='quiz')renderQuiz();
+}
+
+// ══ VIDEO ══
+function updateVideo(){
+  const m=MODS[CM];
+  document.getElementById('vh-t').textContent=m.t;
+  document.getElementById('vh-d').textContent=m.d;
+  document.getElementById('vh-dur').textContent=m.dur;
+  document.getElementById('vh-num').textContent='Clase '+(CM+1)+' de '+MODS.length;
+  document.getElementById('vh-status').textContent=PROG[CM]?'Vista ✓':'Pendiente';
+  document.getElementById('vbadge').style.display=PROG[CM]?'block':'none';
+  document.getElementById('vph-sub').textContent=m.dur;
+  // admin row
+  document.getElementById('vadmin').className='vadmin'+(CU?.isAdmin?' show':'');
+  // file name
+  const hasBlob=!!VBL[CM];
+  document.getElementById('vfile-name').textContent=hasBlob?'Video cargado ✓ — listo para reproducir':'Sin video cargado para esta clase';
+  document.getElementById('vph-lbl').textContent=hasBlob?(PROG[CM]?'Vista ✓ — clic para ver de nuevo':'Clic para reproducir'):(CU?.isAdmin?'Carga el MP4 arriba':'Clase próximamente disponible');
+}
+
+function onFileSelect(e){
+  const file=e.target.files[0];
+  if(!file)return;
+  // revoke old blob
+  if(VBL[CM])URL.revokeObjectURL(VBL[CM]);
+  VBL[CM]=URL.createObjectURL(file);
+  document.getElementById('vfile-name').textContent='Video cargado ✓ — listo para reproducir';
+  document.getElementById('vph-lbl').textContent='Clic para reproducir';
+  // reset
+  const pl=document.getElementById('vplayer');
+  pl.pause();pl.src='';pl.style.display='none';
+  document.getElementById('vph').style.display='flex';
+}
+
+function playVideo(){
+  const blob=VBL[CM];
+  if(!blob){
+    if(CU?.isAdmin)alert('Selecciona primero el archivo MP4 de esta clase usando el botón de arriba.');
+    else alert('El video de esta clase estará disponible próximamente.');
+    return;
+  }
+  const pl=document.getElementById('vplayer');
+  pl.src=blob;
+  pl.style.display='block';
+  document.getElementById('vph').style.display='none';
+  pl.play();
+  markWatched();
+}
+
+function onVideoEnd(){markWatched();}
+
+function markWatched(){
+  PROG[CM]=true;
+  saveProg();
+  updateVideo();
+  updateStats();
+  renderList();
+}
+
+function prevMod(){if(CM>0){CM--;resetQuiz();const pl=document.getElementById('vplayer');pl.pause();pl.src='';pl.style.display='none';document.getElementById('vph').style.display='flex';renderAll();}}
+function nextMod(){if(CM<MODS.length-1){CM++;resetQuiz();const pl=document.getElementById('vplayer');pl.pause();pl.src='';pl.style.display='none';document.getElementById('vph').style.display='flex';renderAll();}}
+
+// ══ QUIZ ══
+function resetQuiz(){CQ=0;SA=null;ANS=false;QS=0;QD=false;}
+function renderQuiz(){
+  const c=document.getElementById('qi');
+  const qs=QUIZ[CM];
+  if(QD){
+    const pct=Math.round(QS/qs.length*100);
+    saveScore(CM,pct);updateStats();renderList();
+    const st=pct===100?'★★★':pct>=67?'★★☆':'★☆☆';
+    c.innerHTML=`<div class="rscreen">
+      <div style="font-size:22px;letter-spacing:3px;">${st}</div>
+      <div class="sring"><div class="sbig">${pct}%</div><div class="slbl2">puntaje</div></div>
+      <div class="rt">${pct===100?'¡Perfecto!':pct>=67?'¡Buen trabajo!':'Sigue repasando'}</div>
+      <div class="rs">${QS} de ${qs.length} respuestas correctas</div>
+      <button class="btn btn-p" style="margin-top:12px;" onclick="resetQuizUI()">Repetir examen</button>
+    </div>`;
+    return;
+  }
+  const q=qs[CQ];
+  const L=['A','B','C','D'];
+  const pw=Math.round(CQ/qs.length*100);
+  c.innerHTML=`<div class="qscroll">
+    <div class="qpb"><div class="qpf" style="width:${pw}%"></div></div>
+    <div class="qnum">Pregunta ${CQ+1} de ${qs.length}</div>
+    <div class="qtxt">${q.q}</div>
+    ${q.o.map((o,i)=>`<div class="opt" id="o${i}" onclick="pickOpt(${i})">
+      <div class="ol">${L[i]}</div><div class="ot">${o}</div>
+    </div>`).join('')}
+    <div id="fb"></div>
+  </div>
+  <div class="qfoot">
+    <span class="qctr">${CQ+1}/${qs.length}</span>
+    <button class="btn btn-p btn-sm" id="bn" style="display:none;" onclick="nextQ()">${CQ<qs.length-1?'Siguiente →':'Ver resultado'}</button>
+  </div>`;
+  if(ANS&&SA!==null)pickOpt(SA);
+}
+function pickOpt(i){
+  if(ANS&&SA!==i)return;
+  if(!ANS){SA=i;ANS=true;
+    const q=QUIZ[CM][CQ];
+    if(i===q.c)QS++;
+    document.querySelectorAll('.opt').forEach((el,idx)=>{
+      if(idx===q.c)el.classList.add('correct');
+      else if(idx===i&&i!==q.c)el.classList.add('wrong');
+    });
+    document.getElementById('fb').innerHTML=`<div class="fb ${i===q.c?'fbok':'fberr'}"><strong>${i===q.c?'✓ Correcto':'✗ Incorrecto'}</strong> — ${q.e}</div>`;
+    document.getElementById('bn').style.display='inline-block';
+  }
+}
+function nextQ(){
+  if(CQ<QUIZ[CM].length-1){CQ++;SA=null;ANS=false;renderQuiz();}
+  else{QD=true;renderQuiz();}
+}
+function resetQuizUI(){resetQuiz();renderQuiz();}
+
+// ══ AI ══
+async function sendAI(){
+  const inp=document.getElementById('ainp');
+  const msg=inp.value.trim();if(!msg)return;
+  inp.value='';addBub(msg,'user');
+  document.getElementById('asugs').style.display='none';
+  const loader=addBub('Pensando...','ai loading');
+  AIH.push({role:'user',content:msg});
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      model:'claude-sonnet-4-20250514',max_tokens:800,
+      system:`Eres un tutor experto en gasometría arterial veterinaria. El estudiante está en la clase "${MODS[CM].t}". Responde en español, conciso y didáctico, máximo 4 oraciones. Usa ejemplos en perros y gatos.`,
+      messages:AIH
+    })});
+    const d=await r.json();
+    const reply=d.content?.find(b=>b.type==='text')?.text||'No pude responder. Intenta de nuevo.';
+    AIH.push({role:'assistant',content:reply});
+    loader.remove();addBub(reply,'ai');
+  }catch(e){loader.remove();addBub('Error de conexión. Intenta de nuevo.','ai');}
+}
+function addBub(t,c){
+  const ch=document.getElementById('achat');
+  const el=document.createElement('div');el.className='bubble '+c;el.textContent=t;
+  ch.appendChild(el);ch.scrollTop=ch.scrollHeight;return el;
+}
+function askS(t){document.getElementById('ainp').value=t;sendAI();}
+
+// ══ PROGRESS ══
+function openProgress(){renderMyProgress();showScreen('s-prog');}
+function renderMyProgress(){
+  const done=PROG.filter(Boolean).length;
+  const pct=Math.round(done/MODS.length*100);
+  const allSc=SCORES.filter(s=>s!=null);
+  const avg=allSc.length?Math.round(allSc.reduce((a,b)=>a+b,0)/allSc.length):null;
+  const ini=CU.name.split(' ').map(x=>x[0]).join('').substring(0,2).toUpperCase();
+
+  let rows=MODS.map((m,i)=>`<tr>
+    <td>${m.t}</td>
+    <td>${m.dur}</td>
+    <td><span class="${PROG[i]?'badge-done':'badge-pend'}">${PROG[i]?'Vista':'Pendiente'}</span></td>
+    <td>${SCORES[i]!=null?`<span class="score-pill">${SCORES[i]}%</span>`:`<span class="score-na">—</span>`}</td>
+  </tr>`).join('');
+
+  document.getElementById('pbody').innerHTML=`
+    <div class="phero">
+      <div class="phav">${ini}</div>
+      <div>
+        <div class="phname">${CU.name}</div>
+        <div class="phsub">${CU.spec}</div>
+        <div class="phsub" style="margin-top:3px;">${CU.email}</div>
+      </div>
+      <div class="phring-wrap">
+        <div class="phring"><div class="phrn">${pct}%</div><div class="phrl">completado</div></div>
+        <div style="font-size:10px;color:var(--hint);margin-top:5px;">${done}/${MODS.length} clases</div>
+      </div>
+    </div>
+    <div class="pcourse">
+      <div class="pchdr"><div class="pcname">Gases sanguíneos — 10 clases</div><div class="pcpct">${pct}%</div></div>
+      <div class="pcbar"><div class="pcfill" style="width:${pct}%"></div></div>
+      <table class="modtable">
+        <thead><tr><th>Clase</th><th>Duración</th><th>Estado</th><th>Examen</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      ${avg!=null?`<div class="avg-row"><div class="avg-lbl">Promedio de exámenes</div><div class="avg-val">${avg}%</div></div>`:''}
+    </div>`;
+}
+
+// ══ ADMIN ══
+function openAdmin(){renderAdmin();showScreen('s-admin');}
+function renderAdmin(){
+  const users=getUsers().filter(u=>!u.isAdmin);
+  const allP=LS.get(K.prog)||{};
+  const allS=LS.get(K.scores)||{};
+  const totalMods=MODS.length;
+
+  let totalWatched=0,allScoreFlat=[];
+  users.forEach(u=>{
+    const up=allP[u.email]||[];
+    up.forEach(v=>{if(v)totalWatched++;});
+    const us=allS[u.email]||[];
+    us.forEach(s=>{if(s!=null)allScoreFlat.push(s);});
+  });
+  const avgAll=allScoreFlat.length?Math.round(allScoreFlat.reduce((a,b)=>a+b,0)/allScoreFlat.length):0;
+  const videosLoaded=Object.keys(VBL).length;
+
+  // video status table
+  const vtrows=MODS.map((m,i)=>`<tr>
+    <td>${i+1}. ${m.t}</td>
+    <td>${m.dur}</td>
+    <td>${VBL[i]?'<span class="vstat-ok">✓ Cargado (sesión activa)</span>':'<span class="vstat-no">Sin video</span>'}</td>
+  </tr>`).join('');
+
+  // student rows
+  const stHTML=users.length?users.map(u=>{
+    const up=allP[u.email]||[];
+    const done=up.filter(Boolean).length;
+    const pct=Math.round(done/totalMods*100);
+    const ini=u.name.split(' ').map(x=>x[0]).join('').substring(0,2).toUpperCase();
+    return `<div class="strow" onclick="viewStudentProg('${u.email}')">
+      <div class="stav2">${ini}</div>
+      <div class="stinfo"><div class="stname">${u.name}</div><div class="stspec">${u.spec} · ${u.email}</div></div>
+      <div class="stpw">
+        <div class="stpct">${pct}% completado</div>
+        <div class="stpbar"><div class="stpfill" style="width:${pct}%"></div></div>
+      </div>
+    </div>`;
+  }).join(''):'<div style="color:var(--hint);font-size:13px;padding:8px 0;">Aún no hay estudiantes registrados.</div>';
+
+  document.getElementById('abody').innerHTML=`
+    <div class="agrid">
+      <div class="acard"><div class="aval">${users.length}</div><div class="albl">Estudiantes registrados</div></div>
+      <div class="acard"><div class="aval">${totalMods}</div><div class="albl">Clases del curso</div></div>
+      <div class="acard"><div class="aval">${totalWatched}</div><div class="albl">Clases vistas (total)</div></div>
+      <div class="acard"><div class="aval">${avgAll?avgAll+'%':'—'}</div><div class="albl">Promedio exámenes</div></div>
+    </div>
+
+    <div class="asec">Estado de videos por clase</div>
+    <div style="background:var(--white);border:0.5px solid var(--bdr);border-radius:var(--rlg);padding:14px 16px;margin-bottom:6px;">
+      <div style="font-size:11px;color:var(--amber);background:var(--al);border-radius:var(--r);padding:7px 11px;margin-bottom:12px;">
+        ⚠ Los videos se cargan por sesión desde tu computador. Para publicar en Vercel, sube los archivos MP4 junto al HTML y actualiza las rutas en el código.
+      </div>
+      <table class="vtable">
+        <thead><tr><th>Clase</th><th>Duración</th><th>Estado</th></tr></thead>
+        <tbody>${vtrows}</tbody>
+      </table>
+    </div>
+
+    <div class="asec">Progreso por estudiante</div>
+    ${stHTML}`;
+}
+
+function viewStudentProg(email){
+  const users=getUsers();
+  const u=users.find(x=>x.email===email);
+  if(!u)return;
+  const allP=LS.get(K.prog)||{};
+  const allS=LS.get(K.scores)||{};
+  const up=allP[email]||new Array(MODS.length).fill(false);
+  const us=allS[email]||new Array(MODS.length).fill(null);
+  const done=up.filter(Boolean).length;
+  const pct=Math.round(done/MODS.length*100);
+  const allSc=us.filter(s=>s!=null);
+  const avg=allSc.length?Math.round(allSc.reduce((a,b)=>a+b,0)/allSc.length):null;
+  const ini=u.name.split(' ').map(x=>x[0]).join('').substring(0,2).toUpperCase();
+
+  const rows=MODS.map((m,i)=>`<tr>
+    <td>${m.t}</td><td>${m.dur}</td>
+    <td><span class="${up[i]?'badge-done':'badge-pend'}">${up[i]?'Vista':'Pendiente'}</span></td>
+    <td>${us[i]!=null?`<span class="score-pill">${us[i]}%</span>`:`<span class="score-na">—</span>`}</td>
+  </tr>`).join('');
+
+  // Use the prog screen for student detail
+  document.getElementById('pbody').innerHTML=`
+    <div class="phero">
+      <div class="phav">${ini}</div>
+      <div><div class="phname">${u.name}</div><div class="phsub">${u.spec}</div><div class="phsub" style="margin-top:3px;">${u.email}</div></div>
+      <div class="phring-wrap">
+        <div class="phring"><div class="phrn">${pct}%</div><div class="phrl">completado</div></div>
+        <div style="font-size:10px;color:var(--hint);margin-top:5px;">${done}/${MODS.length} clases</div>
+      </div>
+    </div>
+    <div class="pcourse">
+      <div class="pchdr"><div class="pcname">Gases sanguíneos</div><div class="pcpct">${pct}%</div></div>
+      <div class="pcbar"><div class="pcfill" style="width:${pct}%"></div></div>
+      <table class="modtable">
+        <thead><tr><th>Clase</th><th>Duración</th><th>Estado</th><th>Examen</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      ${avg!=null?`<div class="avg-row"><div class="avg-lbl">Promedio de exámenes</div><div class="avg-val">${avg}%</div></div>`:''}
+    </div>`;
+  showScreen('s-prog');
+}
+</script>
+</body>
+</html>
