@@ -639,11 +639,19 @@ function updateStats(){
 
 function selMod(i){
   CM=i;resetQuiz();
-  // reset video
+  resetVideo();
+  renderAll();
+}
+
+function resetVideo(){
+  // remove YouTube iframe
+  const iframe=document.getElementById('yt-iframe');
+  if(iframe)iframe.remove();
+  // reset native player
   const pl=document.getElementById('vplayer');
   pl.pause();pl.src='';pl.style.display='none';
+  // show placeholder
   document.getElementById('vph').style.display='flex';
-  renderAll();
 }
 
 function swTab(tab,el){
@@ -728,8 +736,8 @@ function markWatched(){
   renderList();
 }
 
-function prevMod(){if(CM>0){CM--;resetQuiz();const pl=document.getElementById('vplayer');pl.pause();pl.src='';pl.style.display='none';document.getElementById('vph').style.display='flex';renderAll();}}
-function nextMod(){if(CM<MODS.length-1){CM++;resetQuiz();const pl=document.getElementById('vplayer');pl.pause();pl.src='';pl.style.display='none';document.getElementById('vph').style.display='flex';renderAll();}}
+function prevMod(){if(CM>0){CM--;resetQuiz();resetVideo();renderAll();}}
+function nextMod(){if(CM<MODS.length-1){CM++;resetQuiz();resetVideo();renderAll();}}
 
 // ══ QUIZ ══
 function resetQuiz(){CQ=0;SA=null;ANS=false;QS=0;QD=false;}
