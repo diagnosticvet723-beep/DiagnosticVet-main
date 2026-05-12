@@ -1134,7 +1134,7 @@ body {
 
 <script>
 const LS={get:k=>JSON.parse(localStorage.getItem(k)||'null'),set:(k,v)=>localStorage.setItem(k,JSON.stringify(v))};
-const SHEETS_URL='https://script.google.com/macros/s/AKfycbwhK4ku1-DQFHgWmsu0_5M6nPpgTdUgYsb5j6Nas-qcXZa9ln7jfC9Y_tz5yC6MUcCXig/exec';
+const SHEETS_URL='https://script.google.com/macros/s/AKfycbyvg_6vT0VS__-x4HFFghs4dDQoZ_GrtRutvNDs2ePMog97sqlesrVaZvMOKpcUBWg4/exec';
 const K={users:'dv_u',prog:'dv_p',scores:'dv_s',notes:'dv_notes',bib:'dv_bib',surveys:'dv_surveys'};
 
 const MODS=[
@@ -1701,10 +1701,24 @@ function submitSurvey(){
   if(!surveyData.s1||!surveyData.s2||!surveyData.s3){alert('Por favor responde las preguntas de estrellas.');return;}
   if(!surveyData.yn){alert('Por favor indica si recomendarías el curso.');return;}
   surveyData.text=document.getElementById('survey-text').value;
+  const entry={user:CU?.email||'anon',name:CU?.name||'',whatsapp:CU?.whatsapp||'',date:new Date().toLocaleDateString('es-CO'),...surveyData};
   const all=LS.get(K.surveys)||[];
-  all.push({user:CU?.email||'anon',date:new Date().toLocaleDateString('es-CO'),...surveyData});
+  all.push(entry);
   LS.set(K.surveys,all);
+  // Send to Google Sheets (hoja 2)
+  sendSurveyToSheets(entry);
   hideScreen('s-survey');showScreen('s-survey-done');
+}
+
+async function sendSurveyToSheets(data){
+  try{
+    await fetch(SHEETS_URL,{
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({...data, type:'survey'})
+    });
+  }catch(e){console.log('Survey sheets error:',e);}
 }
 
 // ══ INIT ══
