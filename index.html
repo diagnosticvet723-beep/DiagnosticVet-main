@@ -616,14 +616,22 @@ function renderList(){
   document.getElementById('spct').textContent=pct+'%';
   document.getElementById('mlist').innerHTML=MODS.map((m,i)=>{
     const isA=i===CM,isDone=PROG[i];
-    const ic=isDone?'id':isA?'ia':'ip';
-    const sym=isDone?'✓':isA?'▶':i+1;
+    const locked=i>=3; // clases 4-10 bloqueadas
+    const ic=isDone?'id':isA?'ia':locked?'ip':'ip';
+    const sym=isDone?'✓':isA?'▶':locked?'🔒':i+1;
     const sc=SCORES[i]!=null?`<div class="mq">Examen: ${SCORES[i]}%</div>`:'';
-    return `<div class="mitem ${isA?'on':''}" onclick="selMod(${i})">
+    const lockStyle=locked?'opacity:0.45;cursor:not-allowed;':'';
+    const clickFn=locked?`showLockMsg()`:`selMod(${i})`;
+    const surveyBtn=i===2?`<div class="mq" style="color:var(--acc);cursor:pointer;" onclick="event.stopPropagation();openSurvey()">📋 Encuesta</div>`:'';
+    return `<div class="mitem ${isA&&!locked?'on':''}" style="${lockStyle}" onclick="${clickFn}">
       <div class="mic ${ic}">${sym}</div>
-      <div class="mtxt"><div class="mn">${m.t}</div><div class="md">${m.dur}</div>${sc}</div>
+      <div class="mtxt"><div class="mn">${m.t}</div><div class="md">${locked?'Próximamente':m.dur}</div>${sc}${surveyBtn}</div>
     </div>`;
   }).join('');
+}
+
+function showLockMsg(){
+  alert('Esta clase estará disponible próximamente. 🔒');
 }
 
 function updateStats(){
