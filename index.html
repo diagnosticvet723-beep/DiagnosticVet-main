@@ -315,27 +315,34 @@ body{font-family:var(--font);background:var(--g50);color:var(--text);font-size:1
   cursor:pointer;overflow:hidden;
   display:flex;align-items:center;justify-content:center;
 }
-.vs-thumb-overlay{
+.vs-card-bg{
   position:absolute;inset:0;
-  background:linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.1) 50%, transparent 100%);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  transition:background .2s;
+  background:linear-gradient(135deg,#0d1b2a 0%,#0a3330 50%,#061f1d 100%);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:40px 60px;gap:40px;
 }
-.vs-thumb:hover .vs-thumb-overlay{background:linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.25) 50%, rgba(0,0,0,0.1) 100%);}
+.vs-card-bg::before{
+  content:'';position:absolute;inset:0;
+  background-image:radial-gradient(circle at 80% 20%,rgba(0,133,124,0.15) 0%,transparent 50%),
+    radial-gradient(circle at 20% 80%,rgba(26,43,74,0.3) 0%,transparent 50%);
+}
+.vs-card-content{position:relative;flex:1;}
+.vs-card-num{font-size:11px;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.12em;margin-bottom:10px;}
+.vs-card-title{font-family:var(--serif);font-size:28px;font-style:italic;color:white;line-height:1.25;margin-bottom:10px;}
+.vs-card-desc{font-size:13px;color:rgba(255,255,255,0.45);line-height:1.5;margin-bottom:14px;}
+.vs-card-dur{display:inline-flex;align-items:center;gap:6px;background:rgba(0,133,124,0.15);border:1px solid rgba(0,133,124,0.25);border-radius:99px;padding:4px 12px;font-size:11px;font-weight:600;color:var(--teal);}
+.vs-card-play{position:relative;display:flex;flex-direction:column;align-items:center;gap:14px;flex-shrink:0;}
 .vs-play-btn{
-  width:72px;height:72px;border-radius:50%;
-  background:rgba(255,255,255,0.15);
-  backdrop-filter:blur(4px);
-  border:2.5px solid rgba(255,255,255,0.6);
+  width:76px;height:76px;border-radius:50%;
+  background:rgba(0,133,124,0.15);
+  border:2px solid rgba(0,133,124,0.5);
   display:flex;align-items:center;justify-content:center;
   transition:all .2s;
-  box-shadow:0 4px 20px rgba(0,0,0,0.4);
 }
-.vs-thumb:hover .vs-play-btn{background:rgba(0,133,124,0.75);border-color:var(--teal);transform:scale(1.06);}
-.vs-tri{width:0;height:0;border-left:24px solid white;border-top:15px solid transparent;border-bottom:15px solid transparent;margin-left:6px;}
-.vs-thumb-info{position:absolute;bottom:16px;left:20px;right:20px;}
-.vs-thumb-lbl{font-size:14px;color:rgba(255,255,255,0.9);font-weight:600;text-shadow:0 1px 4px rgba(0,0,0,0.5);}
-.vs-thumb-dur{font-size:11px;color:rgba(255,255,255,0.55);margin-top:3px;}
+.vs-thumb:hover .vs-play-btn{background:var(--teal);border-color:var(--teal);transform:scale(1.06);box-shadow:0 0 24px rgba(0,133,124,0.4);}
+.vs-tri{width:0;height:0;border-left:24px solid var(--teal);border-top:15px solid transparent;border-bottom:15px solid transparent;margin-left:5px;transition:border-left-color .2s;}
+.vs-thumb:hover .vs-tri{border-left-color:white;}
+.vs-thumb-lbl{font-size:12px;color:rgba(255,255,255,0.5);font-weight:500;white-space:nowrap;}
 .vs-watched{
   position:absolute;top:12px;right:12px;
   background:rgba(56,161,105,0.2);
@@ -344,11 +351,6 @@ body{font-family:var(--font);background:var(--g50);color:var(--text);font-size:1
   color:#68D391;font-size:10px;font-weight:600;
   padding:4px 10px;border-radius:99px;
   display:none;z-index:2;
-}
-.vs-no-thumb{
-  position:absolute;inset:0;
-  background:linear-gradient(160deg,#0d1b2a,#0d3d3a);
-  display:flex;align-items:center;justify-content:center;
 }
 
 /* Video footer */
@@ -797,17 +799,20 @@ body{font-family:var(--font);background:var(--g50);color:var(--text);font-size:1
         </div>
         <div class="v-stage" id="vwrap">
           <div class="vs-thumb" id="vph" onclick="playVideo()">
-            <img id="vthumb" src="" alt="Miniatura del video" style="width:100%;height:100%;object-fit:cover;display:block;"/>
-            <div class="vs-thumb-overlay">
-              <div class="vs-play-btn">
-                <div class="vs-tri"></div>
+            <div class="vs-card-bg">
+              <div class="vs-card-content">
+                <div class="vs-card-num" id="vph-mod-num">Clase 1</div>
+                <div class="vs-card-title" id="vph-mod-title">—</div>
+                <div class="vs-card-desc" id="vph-mod-desc">—</div>
+                <div class="vs-card-dur"><span id="vph-mod-dur">—</span></div>
               </div>
-              <div class="vs-thumb-info">
+              <div class="vs-card-play">
+                <div class="vs-play-btn"><div class="vs-tri"></div></div>
                 <div class="vs-thumb-lbl" id="vph-lbl">Reproducir clase</div>
-                <div class="vs-thumb-dur" id="vph-sub">—</div>
               </div>
             </div>
             <div class="vs-watched" id="vbadge">✓ Vista</div>
+            <div id="vph-sub" style="display:none;">—</div>
           </div>
           <video id="vplayer" style="width:100%;height:100%;object-fit:contain;display:none;" controls onended="markWatched()"></video>
         </div>
@@ -1128,15 +1133,17 @@ function updateVideo(){
   document.getElementById('vbadge').style.display=PROG[CM]?'block':'none';
   document.getElementById('vph-sub').textContent=m.dur;
   const ytid=YT[CM];
-  // Set YouTube thumbnail
-  const thumb=document.getElementById('vthumb');
+  // Update placeholder card
+  document.getElementById('vph-mod-num').textContent='Clase '+(CM+1);
+  document.getElementById('vph-mod-title').textContent=m.t;
+  document.getElementById('vph-mod-desc').textContent=m.d||'';
+  document.getElementById('vph-mod-dur').textContent=m.dur;
   if(ytid){
-    thumb.src='https://img.youtube.com/vi/'+ytid+'/maxresdefault.jpg';
-    thumb.onerror=function(){this.src='https://img.youtube.com/vi/'+ytid+'/hqdefault.jpg';};
     document.getElementById('vph-lbl').textContent=PROG[CM]?'Vista ✓ — clic para ver de nuevo':'Reproducir clase';
+    document.getElementById('vph').style.cursor='pointer';
   } else {
-    thumb.src='';
     document.getElementById('vph-lbl').textContent=CU?.isAdmin?'Sin video asignado':'Clase próximamente disponible';
+    document.getElementById('vph').style.cursor='default';
   }
 }
 
