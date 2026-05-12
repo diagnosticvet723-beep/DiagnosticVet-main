@@ -270,6 +270,18 @@ body{font-family:var(--font);background:var(--g50);color:var(--text);font-size:1
 .vtable td:first-child{color:var(--text);font-weight:500;}
 .vstat-ok{color:var(--green);font-size:11px;font-weight:600;}
 .vstat-no{color:var(--hint);font-size:11px;}
+
+/* ══ SURVEY ══ */
+.survey-card{background:var(--white);border:0.5px solid var(--bdr);border-radius:var(--rlg);padding:16px 18px;margin-bottom:12px;}
+.sq-num{font-size:9.5px;font-weight:700;color:var(--hint);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px;}
+.sq-txt{font-size:14px;font-weight:600;color:var(--text);line-height:1.5;margin-bottom:10px;}
+.star-row{display:flex;gap:6px;}
+.star{font-size:28px;color:var(--g200);cursor:pointer;transition:color .15s;line-height:1;}
+.star.on{color:#F59E0B;}
+.star-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--hint);margin-top:4px;}
+.yn-btn{flex:1;padding:10px;border:0.5px solid var(--g200);border-radius:var(--r);text-align:center;cursor:pointer;font-size:13px;transition:all .15s;color:var(--muted);}
+.yn-btn:hover{border-color:var(--p);background:var(--pale);}
+.yn-btn.on{border-color:var(--p);background:var(--pl);color:var(--pd);font-weight:600;}
 </style>
 </head>
 <body>
@@ -330,6 +342,7 @@ body{font-family:var(--font);background:var(--g50);color:var(--text);font-size:1
     <div class="tsp"></div>
     <button class="tbtn" id="btn-admin" style="display:none" onclick="openAdmin()">Panel admin</button>
     <button class="tbtn" onclick="openProgress()">Mi progreso</button>
+    <button class="tbtn" onclick="openSurvey()" style="background:rgba(192,132,252,.15);border-color:rgba(192,132,252,.3);">📋 Encuesta</button>
     <div class="tpill">
       <div class="tav" id="tav">?</div>
       <div class="tun" id="tun">—</div>
@@ -346,7 +359,7 @@ body{font-family:var(--font);background:var(--g50);color:var(--text);font-size:1
       </div>
       <div class="course-hdr">
         <div class="course-badge">MVP</div>
-        <div class="course-name">Gases sanguíneos</div>
+        <div class="course-name">Curso de Gases sanguíneos</div>
       </div>
       <div class="mlist" id="mlist"></div>
     </aside>
@@ -457,13 +470,13 @@ const K={users:'dv_u',prog:'dv_p',scores:'dv_s',videos:'dv_v'};
 
 // ══ MODULES ══
 const MODS=[
-  {t:'Introducción a la gasometría',d:'¿Qué son los gases sanguíneos y para qué sirven?',dur:'8 min'},
-  {t:'Toma de muestra arterial',d:'Técnica en arteria femoral, metatarsal y auricular',dur:'7 min'},
-  {t:'pH y equilibrio ácido-base',d:'Valores normales en perros, gatos y animales de granja',dur:'10 min'},
-  {t:'PaCO2 y ventilación alveolar',d:'Hipercapnia, hipocapnia y su significado clínico',dur:'9 min'},
-  {t:'HCO3 y componente metabólico',d:'Bicarbonato, exceso de base y compensación renal',dur:'11 min'},
-  {t:'PaO2 y oxigenación',d:'Hipoxemia: clasificación, gradiente A-a y causas',dur:'10 min'},
-  {t:'Acidosis respiratoria',d:'Causas más frecuentes en perros y gatos, diagnóstico y manejo',dur:'12 min'},
+  {t:'Introducción a la gasometría',d:'¿Qué son los gases sanguíneos y para qué sirven?',dur:'9 min'},
+  {t:'ABC del equilibrio Acido-Base',d:'Conceptos claves',dur:'13 min'},
+  {t:'Determinantes del pH',d:'Bicarbonato y Dioxido de Carbono',dur:'10 min'},
+  {t:'Anion GAP',d:'Electroneutralidad y tipos de acidosis metabolica',dur:'9 min'},
+  {t:'Deficit - exceso de Base',d:'Parametro directo metabolico',dur:'11 min'},
+  {t:'Toma de muestra',d:'Técnica correcta para la toma de gases sanguíneos',dur:'10 min'},
+  {t:'Acidosis respiratoria',d:'Causas más frecuentes, diagnóstico y manejo',dur:'12 min'},
   {t:'Acidosis y alcalosis metabólica',d:'Anión gap veterinario, cetoacidosis diabética felina y manejo',dur:'13 min'},
   {t:'Trastornos mixtos',d:'Reconocimiento y estrategia diagnóstica paso a paso',dur:'11 min'},
   {t:'Casos clínicos integrados',d:'10 casos reales: UCI, emergencias y exóticos',dur:'15 min'},
@@ -482,34 +495,20 @@ const QUIZ=[
   [{q:'En el sistema tampón bicarbonato, si la PaCO2 aumenta a 60 mmHg manteniendo el HCO3 en 24 mEq/L, ¿qué ocurre con el pH según la ecuación de Henderson-Hasselbalch?',o:['El pH sube porque hay más CO2 disponible','El pH baja porque aumenta la concentración de H2CO3','El pH se mantiene porque el HCO3 compensa automáticamente','El pH sube porque el riñón retiene bicarbonato inmediatamente'],c:1,e:'Según Henderson-Hasselbalch, el pH depende de la relación HCO3/PaCO2. Al aumentar la PaCO2 sin cambio en HCO3, aumenta el H2CO3 y baja el pH.'},
    {q:'Un paciente con vómito crónico pierde grandes cantidades de HCl gástrico. ¿Cuál es el mecanismo renal de compensación esperado?',o:['Retención de H+ y eliminación de HCO3 para corregir la alcalosis','Retención de HCO3 para compensar la pérdida de cloro y mantener la electroneutralidad','Aumento de la reabsorción de CO2 tubular','Eliminación de potasio para conservar el sodio'],c:1,e:'La pérdida de HCl genera alcalosis hipoclorémica. El riñón compensa reteniendo HCO3 para mantener la electroneutralidad ante el déficit de Cl⁻.'},
    {q:'¿Por qué la compensación renal en un trastorno respiratorio es más lenta que la compensación pulmonar en un trastorno metabólico?',o:['Porque el riñón no puede modificar el HCO3','Porque la síntesis y excreción de bicarbonato renal tarda horas a días, mientras el pulmón ajusta la ventilación en minutos','Porque el pulmón tiene mayor capacidad tampón que el riñón','Porque el riñón solo actúa en alcalosis, no en acidosis'],c:1,e:'El pulmón ajusta la ventilación en minutos. El riñón en cambio tarda horas a días en modificar la excreción/reabsorción de HCO3, por lo que la compensación renal es más lenta pero más duradera.'}],
-  // M3
-  [{q:'¿Cuál es el valor normal de PaCO2 en perros?',o:['20–30 mmHg','35–45 mmHg','50–60 mmHg','60–75 mmHg'],c:1,e:'La PaCO2 normal en perros es 35–45 mmHg. Valores mayores indican hipoventilación (hipercapnia) y menores, hiperventilación (hipocapnia).'},
-   {q:'PaCO2 elevada con pH bajo indica:',o:['Alcalosis metabólica','Acidosis respiratoria','Alcalosis respiratoria','Acidosis metabólica pura'],c:1,e:'PaCO2 alta + pH bajo = acidosis respiratoria. El exceso de CO2 se convierte en ácido carbónico, disminuyendo el pH.'},
-   {q:'La hipocapnia (PaCO2 < 35 mmHg) se produce por:',o:['Hipoventilación','Obstrucción de vías aéreas','Hiperventilación','Insuficiencia renal'],c:2,e:'La hiperventilación elimina CO2 en exceso (hipocapnia), causando alcalosis respiratoria. Causas: ansiedad, dolor, lesión SNC, hipoxemia.'}],
-  // M4
-  [{q:'¿Cuál es el HCO3 normal en pequeños animales?',o:['12–17 mEq/L','22–26 mEq/L','28–34 mEq/L','16–20 mEq/L'],c:1,e:'El HCO3 normal es 22–26 mEq/L en perros y gatos. Es el principal tampón del sistema metabólico del equilibrio ácido-base.'},
-   {q:'En acidosis metabólica, el HCO3:',o:['Aumenta compensatoriamente','Se mantiene normal','Disminuye','Aumenta y luego baja'],c:2,e:'En acidosis metabólica el HCO3 disminuye porque se consume para tamponar el exceso de ácidos fijos acumulados.'},
-   {q:'El exceso de base (BE) normal es aproximadamente:',o:['-10 a -5 mEq/L','0 ± 4 mEq/L','+5 a +10 mEq/L','+10 a +15 mEq/L'],c:1,e:'El BE normal es 0 ± 4 mEq/L. Negativo indica acidosis metabólica (déficit de base) y positivo indica alcalosis metabólica.'}],
-  // M5
-  [{q:'¿Qué PaO2 define hipoxemia significativa en perros?',o:['< 80 mmHg','< 60 mmHg','< 40 mmHg','< 50 mmHg'],c:1,e:'PaO2 < 60 mmHg define hipoxemia clínicamente significativa. A este nivel la saturación cae bruscamente por la forma sigmoidea de la curva de disociación.'},
-   {q:'La insuficiencia respiratoria tipo I se caracteriza por:',o:['PaO2 baja + PaCO2 alta','PaO2 baja + PaCO2 normal o baja','PaO2 alta + PaCO2 baja','PaO2 y PaCO2 normales'],c:1,e:'IR tipo I (hipoxémica): PaO2 baja con PaCO2 normal o baja. El pulmón no oxigena adecuadamente pero la ventilación se mantiene (o está aumentada).'},
-   {q:'SpO2 normal en perros respirando aire ambiente:',o:['85–90%','90–94%','95–100%','100% siempre'],c:2,e:'La SpO2 normal en perros es 95–100%. Valores menores de 95% requieren evaluación y posiblemente suplementación de oxígeno.'}],
-  // M6
-  [{q:'Causa más frecuente de acidosis respiratoria AGUDA en gatos:',o:['Hiperventilación por dolor','Asma felina / broncoespasmo','Alcalosis metabólica previa','Diarrea crónica'],c:1,e:'El broncoespasmo del asma felina impide la eliminación de CO2, produciendo hipercapnia y acidosis respiratoria aguda.'},
-   {q:'En acidosis respiratoria crónica, el riñón compensa:',o:['Eliminando HCO3','Reteniendo HCO3','Produciendo más CO2','Eliminando H+ en exceso'],c:1,e:'El riñón compensa la acidosis respiratoria crónica reteniendo bicarbonato (HCO3) para elevar el pH hacia lo normal.'},
-   {q:'Un gato con EPOC crónico tendrá típicamente:',o:['pH bajo, PaCO2 baja, HCO3 normal','pH normal-bajo, PaCO2 alta, HCO3 alta','pH alto, PaCO2 alta, HCO3 baja','pH y gases normales'],c:1,e:'EPOC crónico: pH normal-bajo + PaCO2 elevada + HCO3 elevado (compensación renal) = acidosis respiratoria crónica compensada.'}],
-  // M7
-  [{q:'La cetoacidosis diabética (CAD) en gatos causa:',o:['Alcalosis metabólica','Acidosis metabólica con anión gap elevado','Acidosis metabólica con anión gap normal','Alcalosis respiratoria'],c:1,e:'La CAD acumula cetoácidos (betahidroxibutirato, acetoacetato) que aumentan el anión gap, causando acidosis metabólica de AG elevado.'},
-   {q:'El anión gap normal en pequeños animales es:',o:['5–10 mEq/L','12–24 mEq/L','25–35 mEq/L','1–5 mEq/L'],c:1,e:'El anión gap normal en perros y gatos es 12–24 mEq/L. Valores mayores indican presencia de ácidos no medidos (lactato, cetonas, toxinas).'},
-   {q:'La diarrea severa produce acidosis metabólica con anión gap:',o:['Elevado (>24)','Normal (12–24)','Disminuido (<12)','Variable según la causa'],c:1,e:'La diarrea pierde HCO3 que se reemplaza con Cl⁻, causando acidosis hiperclorémica con anión gap NORMAL. Clásico ejemplo de AG normal.'}],
-  // M8
-  [{q:'¿Cuándo sospechar un trastorno mixto?',o:['Siempre que el pH sea normal','Cuando la compensación esperada no coincide con la medida','Solo cuando hay fiebre','Cuando el anión gap es normal'],c:1,e:'Si la compensación calculada (ej: fórmula de Winter) no coincide con la medida, existe un segundo trastorno superpuesto: trastorno mixto.'},
-   {q:'pH 7.28, PaCO2 55, HCO3 11. ¿Cuál es el diagnóstico?',o:['Acidosis respiratoria pura','Acidosis metabólica compensada','Trastorno mixto: acidosis resp. + acidosis met.','Alcalosis mixta'],c:2,e:'PaCO2 alta (acidosis respiratoria) + HCO3 bajo (acidosis metabólica) + pH muy bajo = trastorno mixto de doble componente acidótico.'},
-   {q:'La fórmula de Winter calcula:',o:['PaO2 esperada en hipoxemia','PaCO2 esperada en acidosis metabólica','HCO3 esperado en alcalosis','BE en trastornos mixtos'],c:1,e:'Fórmula de Winter: PaCO2 esperada = 1.5 × HCO3 + 8 ± 2. Verifica si la compensación respiratoria es adecuada en acidosis metabólica.'}],
-  // M9
-  [{q:'Primer paso al interpretar una gasometría:',o:['Ver PaCO2','Evaluar el pH (acidemia vs alcalemia)','Calcular el anión gap','Ver HCO3'],c:1,e:'El primer paso siempre es evaluar el pH: ¿hay acidemia (<7.35) o alcalemia (>7.45)? Esto orienta todo el análisis posterior.'},
-   {q:'Un perro con uroabdomen (orina libre en peritoneo) tendrá:',o:['Alcalosis metabólica','Acidosis respiratoria','Acidosis metabólica hiperclorémica','pH normal siempre'],c:2,e:'El uroabdomen causa reabsorción de orina peritoneal → hipercloremia, hiperkalemia y acidosis metabólica de anión gap normal.'},
-   {q:'Perro politraumatizado: pH 7.22, PaCO2 28, HCO3 10. Diagnóstico:',o:['Acidosis respiratoria compensada','Acidosis metabólica con compensación respiratoria adecuada','Alcalosis metabólica','Trastorno mixto alcalótico'],c:1,e:'pH bajo + HCO3 muy bajo (acidosis metabólica) + PaCO2 baja (hiperventilación compensatoria). La compensación es adecuada según Winter (PaCO2 esperada ≈ 23 mmHg).'}],
+  // M3 — sin examen aún
+  [],
+  // M4 — sin examen aún
+  [],
+  // M5 — sin examen aún
+  [],
+  // M6 — sin examen aún
+  [],
+  // M7 — sin examen aún
+  [],
+  // M8 — sin examen aún
+  [],
+  // M9 — sin examen aún
+  [],
 ];
 
 // ══ YOUTUBE IDs por clase (índice 0 = clase 1) ══
@@ -534,7 +533,7 @@ const VBL={};
 // ══ SCREEN HELPERS ══
 function showScreen(id){document.getElementById(id).classList.add('on');}
 function hideScreen(id){document.getElementById(id).classList.remove('on');}
-function showOnly(id){['s-login','s-reg','s-app','s-admin','s-prog'].forEach(s=>document.getElementById(s).classList.remove('on'));showScreen(id);}
+function showOnly(id){['s-login','s-reg','s-app','s-admin','s-prog','s-survey','s-survey-done'].forEach(s=>document.getElementById(s).classList.remove('on'));showScreen(id);}
 
 // ══ AUTH ══
 function getUsers(){return LS.get(K.users)||[];}
@@ -734,6 +733,14 @@ function markWatched(){
   updateVideo();
   updateStats();
   renderList();
+  // Show survey prompt after completing class 3
+  if(CM===2&&PROG[0]&&PROG[1]&&PROG[2]){
+    setTimeout(()=>{
+      if(confirm('¡Felicitaciones! Completaste las 3 primeras clases.\n\n¿Te gustaría responder una breve encuesta de satisfacción? (2 minutos)')){
+        openSurvey();
+      }
+    },800);
+  }
 }
 
 function prevMod(){if(CM>0){CM--;resetQuiz();resetVideo();renderAll();}}
@@ -966,6 +973,147 @@ function viewStudentProg(email){
     </div>`;
   showScreen('s-prog');
 }
+
+// ══ SURVEY ══
+const surveyAnswers={s1:0,s2:0,s3:0,yn:'',text:''};
+
+function setStar(q,val){
+  surveyAnswers['s'+q]=val;
+  const row=document.getElementById('sr'+q);
+  row.querySelectorAll('.star').forEach((s,i)=>{
+    s.classList.toggle('on',i<val);
+  });
+}
+
+function setYN(val){
+  surveyAnswers.yn=val;
+  document.getElementById('yn-si').classList.toggle('on',val==='si');
+  document.getElementById('yn-no').classList.toggle('on',val==='no');
+}
+
+function openSurvey(){
+  // reset
+  [1,2,3].forEach(q=>{
+    surveyAnswers['s'+q]=0;
+    document.getElementById('sr'+q).querySelectorAll('.star').forEach(s=>s.classList.remove('on'));
+  });
+  surveyAnswers.yn='';
+  document.getElementById('yn-si').classList.remove('on');
+  document.getElementById('yn-no').classList.remove('on');
+  document.getElementById('survey-text').value='';
+  showScreen('s-survey');
+}
+
+function submitSurvey(){
+  if(!surveyAnswers.s1||!surveyAnswers.s2||!surveyAnswers.s3){
+    alert('Por favor responde las preguntas de estrellas (1-3) antes de enviar.');return;
+  }
+  if(!surveyAnswers.yn){
+    alert('Por favor responde si recomendarías el curso.');return;
+  }
+  surveyAnswers.text=document.getElementById('survey-text').value;
+  // Save to localStorage
+  const allSurveys=LS.get('dv_surveys')||[];
+  allSurveys.push({
+    user:CU?.email||'anon',
+    date:new Date().toLocaleDateString('es-CO'),
+    ...surveyAnswers
+  });
+  LS.set('dv_surveys',allSurveys);
+  hideScreen('s-survey');
+  showScreen('s-survey-done');
+}
 </script>
+
+<!-- ══ ENCUESTA ══ -->
+<div id="s-survey" class="screen">
+  <div style="height:50px;background:var(--pdd);display:flex;align-items:center;padding:0 18px;gap:12px;flex-shrink:0;">
+    <div class="tlic"><svg width="16" height="16" viewBox="0 0 26 26" fill="none"><ellipse cx="13" cy="10" rx="7" ry="5" stroke="white" stroke-width="1.5"/><circle cx="13" cy="10" r="2.5" fill="white"/></svg></div>
+    <div style="font-family:var(--serif);font-size:15px;color:#fff;font-weight:600;">Encuesta de satisfacción</div>
+    <div style="flex:1"></div>
+    <button class="tbtn" onclick="hideScreen('s-survey')">← Volver al curso</button>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:20px;background:var(--g50);">
+    <div style="max-width:560px;margin:0 auto;">
+
+      <div style="background:var(--white);border:0.5px solid var(--bdr);border-radius:var(--rlg);padding:20px;margin-bottom:14px;">
+        <div style="font-family:var(--serif);font-size:20px;font-style:italic;color:var(--text);margin-bottom:4px;">¡Gracias por completar las 3 primeras clases!</div>
+        <div style="font-size:12px;color:var(--hint);">Tu opinión nos ayuda a mejorar DiagnosticVet. La encuesta toma menos de 2 minutos.</div>
+      </div>
+
+      <!-- P1 -->
+      <div class="survey-card">
+        <div class="sq-num">Pregunta 1 de 5</div>
+        <div class="sq-txt">¿El contenido del curso fue claro y fácil de entender?</div>
+        <div class="star-row" id="sr1">
+          <span class="star" onclick="setStar(1,1)">★</span>
+          <span class="star" onclick="setStar(1,2)">★</span>
+          <span class="star" onclick="setStar(1,3)">★</span>
+          <span class="star" onclick="setStar(1,4)">★</span>
+          <span class="star" onclick="setStar(1,5)">★</span>
+        </div>
+        <div class="star-labels"><span>Muy difícil</span><span>Muy claro</span></div>
+      </div>
+
+      <!-- P2 -->
+      <div class="survey-card">
+        <div class="sq-num">Pregunta 2 de 5</div>
+        <div class="sq-txt">¿Los videos explicaron bien los conceptos?</div>
+        <div class="star-row" id="sr2">
+          <span class="star" onclick="setStar(2,1)">★</span>
+          <span class="star" onclick="setStar(2,2)">★</span>
+          <span class="star" onclick="setStar(2,3)">★</span>
+          <span class="star" onclick="setStar(2,4)">★</span>
+          <span class="star" onclick="setStar(2,5)">★</span>
+        </div>
+        <div class="star-labels"><span>Poco claros</span><span>Muy claros</span></div>
+      </div>
+
+      <!-- P3 -->
+      <div class="survey-card">
+        <div class="sq-num">Pregunta 3 de 5</div>
+        <div class="sq-txt">¿Los exámenes te ayudaron a reforzar lo aprendido?</div>
+        <div class="star-row" id="sr3">
+          <span class="star" onclick="setStar(3,1)">★</span>
+          <span class="star" onclick="setStar(3,2)">★</span>
+          <span class="star" onclick="setStar(3,3)">★</span>
+          <span class="star" onclick="setStar(3,4)">★</span>
+          <span class="star" onclick="setStar(3,5)">★</span>
+        </div>
+        <div class="star-labels"><span>Poco útiles</span><span>Muy útiles</span></div>
+      </div>
+
+      <!-- P4 -->
+      <div class="survey-card">
+        <div class="sq-num">Pregunta 4 de 5</div>
+        <div class="sq-txt">¿Recomendarías DiagnosticVet a un colega veterinario?</div>
+        <div style="display:flex;gap:10px;margin-top:12px;">
+          <div class="yn-btn" id="yn-si" onclick="setYN('si')">👍 Sí, lo recomendaría</div>
+          <div class="yn-btn" id="yn-no" onclick="setYN('no')">👎 No por ahora</div>
+        </div>
+      </div>
+
+      <!-- P5 -->
+      <div class="survey-card">
+        <div class="sq-num">Pregunta 5 de 5</div>
+        <div class="sq-txt">¿Qué mejorarías del curso? (opcional)</div>
+        <textarea id="survey-text" placeholder="Escribe aquí tu sugerencia..." style="width:100%;margin-top:10px;padding:10px 12px;border:0.5px solid var(--g200);border-radius:var(--r);font-family:var(--font);font-size:13px;color:var(--text);background:var(--g50);outline:none;resize:vertical;min-height:80px;transition:border-color .15s;" onfocus="this.style.borderColor='var(--p)'" onblur="this.style.borderColor='var(--g200)'"></textarea>
+      </div>
+
+      <button class="btn btn-p" style="width:100%;padding:12px;font-size:13px;" onclick="submitSurvey()">Enviar encuesta ✓</button>
+      <div style="text-align:center;font-size:11px;color:var(--hint);margin-top:10px;">Tus respuestas son anónimas y nos ayudan a mejorar</div>
+    </div>
+  </div>
+</div>
+
+<!-- SURVEY THANK YOU -->
+<div id="s-survey-done" class="screen" style="align-items:center;justify-content:center;background:var(--g50);">
+  <div style="text-align:center;padding:30px;max-width:400px;">
+    <div style="font-size:48px;margin-bottom:16px;">🎉</div>
+    <div style="font-family:var(--serif);font-size:22px;font-style:italic;color:var(--text);margin-bottom:8px;">¡Muchas gracias!</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:24px;">Tu opinión es muy valiosa para seguir mejorando DiagnosticVet.</div>
+    <button class="btn btn-p" onclick="hideScreen('s-survey-done');showOnly('s-app')">← Volver al curso</button>
+  </div>
+</div>
 </body>
 </html>
