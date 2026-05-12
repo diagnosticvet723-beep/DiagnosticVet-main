@@ -1245,28 +1245,33 @@ function doRegister(){
   hideScreen('s-reg');launch(u);
 }
 
-async function sendToSheets(data){
+function pingSheets(params){
   try{
-    const params=new URLSearchParams({...data,type:'student'});
-    await fetch(SHEETS_URL+'?'+params.toString(),{method:'GET',mode:'no-cors'});
-    console.log('Registro enviado a Sheets');
-  }catch(e){console.log('Sheets sync error:',e);}
+    // Usar imagen invisible para evitar CORS — método más confiable
+    const url=SHEETS_URL+'?'+new URLSearchParams(params).toString();
+    const img=new Image();
+    img.src=url;
+    // También intentar con fetch no-cors como respaldo
+    fetch(url,{method:'GET',mode:'no-cors'}).catch(()=>{});
+    console.log('Datos enviados a Sheets:', params.type, params.email||'');
+  }catch(e){console.log('Sheets error:',e);}
 }
 
-async function updateSheets(){
+function sendToSheets(data){
+  pingSheets({...data, type:'student'});
+}
+
+function updateSheets(){
   if(!CU||CU.isAdmin)return;
   const done=PROG.filter(Boolean).length;
   const all=SCORES.filter(s=>s!=null);
   const avg=all.length?Math.round(all.reduce((a,b)=>a+b,0)/all.length)+'%':'—';
-  try{
-    const params=new URLSearchParams({
-      type:'student',update:'true',
-      name:CU.name,email:CU.email,
-      whatsapp:CU.whatsapp||'',spec:CU.spec,
-      done,avg,lastAccess:new Date().toLocaleDateString('es-CO')
-    });
-    await fetch(SHEETS_URL+'?'+params.toString(),{method:'GET',mode:'no-cors'});
-  }catch(e){console.log('Sheets update error:',e);}
+  pingSheets({
+    type:'student', update:'true',
+    name:CU.name, email:CU.email,
+    whatsapp:CU.whatsapp||'', spec:CU.spec,
+    done, avg, lastAccess:new Date().toLocaleDateString('es-CO')
+  });
 }
 function launch(u){
   CU=u;
@@ -1698,12 +1703,8 @@ function submitSurvey(){
   hideScreen('s-survey');showScreen('s-survey-done');
 }
 
-async function sendSurveyToSheets(data){
-  try{
-    const params=new URLSearchParams({...data,type:'survey'});
-    await fetch(SHEETS_URL+'?'+params.toString(),{method:'GET',mode:'no-cors'});
-    console.log('Encuesta enviada a Sheets');
-  }catch(e){console.log('Survey sheets error:',e);}
+function sendSurveyToSheets(data){
+  pingSheets({...data, type:'survey'});
 }
 
 // ══ INIT ══
