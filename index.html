@@ -849,6 +849,32 @@ body {
     <div class="fld"><label>Nombre completo</label><input id="r-name" type="text" placeholder="Dr. Ana García"/></div>
     <div class="fld"><label>Correo electrónico</label><input id="r-email" type="email" placeholder="tu@correo.com"/></div>
     <div class="fld"><label>Contraseña</label><input id="r-pass" type="password" placeholder="Mínimo 6 caracteres"/></div>
+    <div class="fld"><label>WhatsApp</label>
+      <div style="display:flex;gap:6px;">
+        <select id="r-country" style="width:130px;padding:9px 8px;border:1.5px solid var(--border-2);border-radius:var(--r);font-family:var(--font);font-size:12px;color:var(--text-1);background:var(--surface-2);outline:none;">
+          <option value="+57">🇨🇴 +57 Colombia</option>
+          <option value="+54">🇦🇷 +54 Argentina</option>
+          <option value="+56">🇨🇱 +56 Chile</option>
+          <option value="+52">🇲🇽 +52 México</option>
+          <option value="+51">🇵🇪 +51 Perú</option>
+          <option value="+58">🇻🇪 +58 Venezuela</option>
+          <option value="+593">🇪🇨 +593 Ecuador</option>
+          <option value="+591">🇧🇴 +591 Bolivia</option>
+          <option value="+598">🇺🇾 +598 Uruguay</option>
+          <option value="+595">🇵🇾 +595 Paraguay</option>
+          <option value="+506">🇨🇷 +506 Costa Rica</option>
+          <option value="+507">🇵🇦 +507 Panamá</option>
+          <option value="+503">🇸🇻 +503 El Salvador</option>
+          <option value="+502">🇬🇹 +502 Guatemala</option>
+          <option value="+504">🇭🇳 +504 Honduras</option>
+          <option value="+505">🇳🇮 +505 Nicaragua</option>
+          <option value="+34">🇪🇸 +34 España</option>
+          <option value="+1">🇺🇸 +1 USA/Canadá</option>
+          <option value="+55">🇧🇷 +55 Brasil</option>
+        </select>
+        <input style="flex:1;" id="r-whatsapp" type="tel" placeholder="Número de WhatsApp"/>
+      </div>
+    </div>
     <div class="fld"><label>Especialidad</label>
       <select id="r-spec">
         <option>Clínica de pequeños animales</option>
@@ -1108,6 +1134,7 @@ body {
 
 <script>
 const LS={get:k=>JSON.parse(localStorage.getItem(k)||'null'),set:(k,v)=>localStorage.setItem(k,JSON.stringify(v))};
+const SHEETS_URL='https://script.google.com/macros/s/AKfycbwhK4ku1-DQFHgWmsu0_5M6nPpgTdUgYsb5j6Nas-qcXZa9ln7jfC9Y_tz5yC6MUcCXig/exec';
 const K={users:'dv_u',prog:'dv_p',scores:'dv_s',notes:'dv_notes',bib:'dv_bib',surveys:'dv_surveys'};
 
 const MODS=[
@@ -1200,13 +1227,58 @@ function doRegister(){
   const name=document.getElementById('r-name').value.trim();
   const email=document.getElementById('r-email').value.trim();
   const pass=document.getElementById('r-pass').value;
+  const country=document.getElementById('r-country').value;
+  const phone=document.getElementById('r-whatsapp').value.trim();
+  const whatsapp=phone?country+phone:'';
   const spec=document.getElementById('r-spec').value;
   if(!name||!email||pass.length<6){alert('Completa todos los campos. Contraseña mínimo 6 caracteres.');return;}
   const users=getUsers();
   if(users.find(x=>x.email===email)){alert('Este correo ya está registrado.');return;}
-  const u={name,email,pass,spec,isAdmin:false};
+  const u={name,email,pass,whatsapp,spec,isAdmin:false,registeredAt:new Date().toLocaleDateString('es-CO')};
   users.push(u);saveUsers(users);
+  // Send to Google Sheets
+  sendToSheets({
+    name,email,whatsapp,spec,
+    done:0,avg:'—',
+    lastAccess:new Date().toLocaleDateString('es-CO')
+  });
   hideScreen('s-reg');launch(u);
+}
+
+async function sendToSheets(data){
+  try{
+    await fetch(SHEETS_URL,{
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(data)
+    });
+  }catch(e){
+    console.log('Sheets sync error:',e);
+  }
+}
+
+async function updateSheets(){
+  if(!CU||CU.isAdmin)return;
+  const done=PROG.filter(Boolean).length;
+  const all=SCORES.filter(s=>s!=null);
+  const avg=all.length?Math.round(all.reduce((a,b)=>a+b,0)/all.length)+'%':'—';
+  try{
+    await fetch(SHEETS_URL,{
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        name:CU.name,
+        email:CU.email,
+        whatsapp:CU.whatsapp||'',
+        spec:CU.spec,
+        done,avg,
+        lastAccess:new Date().toLocaleDateString('es-CO'),
+        update:true
+      })
+    });
+  }catch(e){console.log('Sheets update error:',e);}
 }
 function launch(u){
   CU=u;
@@ -1326,7 +1398,7 @@ function playVideo(){
 }
 
 function markWatched(){
-  PROG[CM]=true;saveProg();updateVideo();updateStats();renderList();
+  PROG[CM]=true;saveProg();updateVideo();updateStats();renderList();updateSheets();
   if(CM===2&&PROG[0]&&PROG[1]&&PROG[2]){
     setTimeout(()=>{
       const all=SCORES.filter(s=>s!=null);
@@ -1563,7 +1635,7 @@ function renderAdmin(){
     const ini=u.name.split(' ').map(x=>x[0]).join('').substring(0,2).toUpperCase();
     return `<div class="st-row" onclick="viewStudentProg('${u.email}')">
       <div class="st-av">${ini}</div>
-      <div class="st-info"><div class="st-name">${u.name}</div><div class="st-spec">${u.spec} · ${u.email}</div></div>
+      <div class="st-info"><div class="st-name">${u.name}</div><div class="st-spec">${u.spec} · ${u.email}</div>${u.whatsapp?`<div style="font-size:10px;color:var(--teal);margin-top:1px;">📱 ${u.whatsapp}</div>`:''}</div>
       <div class="st-prog"><div class="st-pct">${pct}% completado</div><div class="st-pbar"><div class="st-pfill" style="width:${pct}%"></div></div></div>
     </div>`;
   }).join(''):'<div style="color:var(--text-3);font-size:13px;padding:6px 0;">Sin estudiantes aún.</div>';
