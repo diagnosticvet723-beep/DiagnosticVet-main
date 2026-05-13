@@ -1134,7 +1134,7 @@ body {
 
 <script>
 const LS={get:k=>JSON.parse(localStorage.getItem(k)||'null'),set:(k,v)=>localStorage.setItem(k,JSON.stringify(v))};
-const SHEETS_URL='https://script.google.com/macros/s/AKfycby3WyeWYIN-8LtEsUDe2EybPl60w4D_VCKzScU-oQiQizcNp69XSYr1GVVkTINBDRle8Q/exec';
+const SHEETS_URL='https://script.google.com/macros/s/AKfycbxyiZKbX4fOmtWrAadXRsiVsVGLP3RIqNaLRQ56fWWiAvf0k4lDuBnacUA1Nfy8eTRg/exec';
 const K={users:'dv_u',prog:'dv_p',scores:'dv_s',notes:'dv_notes',bib:'dv_bib',surveys:'dv_surveys'};
 
 const MODS=[
@@ -1281,6 +1281,8 @@ function launch(u){
   document.getElementById('btn-admin').style.display=u.isAdmin?'inline-block':'none';
   if(u.isAdmin)document.getElementById('bib-add-btn').classList.add('show');
   loadUserData();loadTheme();showOnly('s-app');renderAll();
+  sessionStart=Date.now();
+  setTimeout(()=>saveMetrics('login'),2000);
 }
 function doLogout(){CU=null;showOnly('s-login');document.getElementById('l-email').value='';document.getElementById('l-pass').value='';}
 
@@ -1392,6 +1394,7 @@ function playVideo(){
 
 function markWatched(){
   PROG[CM]=true;saveProg();updateVideo();updateStats();renderList();updateSheets();
+  saveMetrics('class_watched');
   if(CM===2&&PROG[0]&&PROG[1]&&PROG[2]){
     setTimeout(()=>{
       const all=SCORES.filter(s=>s!=null);
@@ -1430,6 +1433,7 @@ function renderQuiz(){
   if(QD){
     const pct=Math.round(QS/qs.length*100);
     saveScore(CM,pct);updateStats();renderList();
+    onQuizComplete(pct);
     const st=pct===100?'★★★':pct>=67?'★★☆':'★☆☆';
     c.innerHTML=`<div class="result-screen">
       <div style="font-size:24px;letter-spacing:4px;">${st}</div>
@@ -1476,6 +1480,10 @@ function nextQ(){
   else{QD=true;renderQuiz();}
 }
 function resetQuizUI(){resetQuiz();renderQuiz();}
+
+function onQuizComplete(pct){
+  saveMetrics('quiz_done_class'+CM+'_score'+pct);
+}
 
 // ══ AI ══
 async function sendAI(){
@@ -1632,14 +1640,67 @@ function renderAdmin(){
       <div class="st-prog"><div class="st-pct">${pct}% completado</div><div class="st-pbar"><div class="st-pfill" style="width:${pct}%"></div></div></div>
     </div>`;
   }).join(''):'<div style="color:var(--text-3);font-size:13px;padding:6px 0;">Sin estudiantes aún.</div>';
+  // Calcular métricas avanzadas
+  const completedAll=users.filter(u=>{const up=allP[u.email]||[];return up[0]&&up[1]&&up[2];}).length;
+  const completionRate=users.length?Math.round(completedAll/users.length*100):0;
+  const surveyAvg=surveys.length?((surveys.reduce((s,x)=>s+(x.s1+x.s2+x.s3)/3,0)/surveys.length)).toFixed(1):0;
+  const recommend=surveys.length?surveys.filter(s=>s.yn==='si').length:0;
+  const nps=surveys.length?Math.round(recommend/surveys.length*100):0;
+
+  // Abandono por clase
+  const abandonment=[0,0,0];
+  users.forEach(u=>{
+    const up=allP[u.email]||[];
+    if(!up[0])abandonment[0]++;
+    else if(!up[1])abandonment[1]++;
+    else if(!up[2])abandonment[2]++;
+  });
+
+  // Promedio por examen
+  const examAvgs=MODS.slice(0,3).map((_,i)=>{
+    const scores=users.map(u=>(allS[u.email]||[])[i]).filter(s=>s!=null);
+    return scores.length?Math.round(scores.reduce((a,b)=>a+b,0)/scores.length):null;
+  });
+
   document.getElementById('abody').innerHTML=`
+    <div style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;">Métricas generales</div>
     <div class="a-grid">
       <div class="a-card"><div class="a-val">${users.length}</div><div class="a-lbl">Estudiantes</div></div>
-      <div class="a-card"><div class="a-val">${MODS.length}</div><div class="a-lbl">Clases</div></div>
-      <div class="a-card"><div class="a-val">${tw}</div><div class="a-lbl">Vistas (total)</div></div>
+      <div class="a-card"><div class="a-val">${completionRate}%</div><div class="a-lbl">Tasa finalización</div></div>
       <div class="a-card"><div class="a-val">${avg?avg+'%':'—'}</div><div class="a-lbl">Promedio exámenes</div></div>
+      <div class="a-card"><div class="a-val">${surveyAvg>0?surveyAvg+' ⭐':'—'}</div><div class="a-lbl">Satisfacción</div></div>
+      <div class="a-card"><div class="a-val">${nps?nps+'%':'—'}</div><div class="a-lbl">NPS (recomiendan)</div></div>
       <div class="a-card"><div class="a-val">${surveys.length}</div><div class="a-lbl">Encuestas</div></div>
     </div>
+
+    <div style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em;margin:16px 0 10px;">Abandono por clase</div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 16px;margin-bottom:14px;">
+      ${MODS.slice(0,3).map((m,i)=>{
+        const pct=users.length?Math.round(abandonment[i]/users.length*100):0;
+        const barColor=pct>50?'var(--red)':pct>25?'var(--amber)':'var(--green)';
+        return `<div style="margin-bottom:10px;">
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+            <span style="color:var(--text-1);font-weight:600;">${m.t}</span>
+            <span style="color:${barColor};font-weight:700;">${abandonment[i]} estudiantes se detuvieron aquí (${pct}%)</span>
+          </div>
+          <div style="height:6px;background:var(--bg-3);border-radius:99px;overflow:hidden;">
+            <div style="height:6px;background:${barColor};border-radius:99px;width:${pct}%;transition:width .5s;"></div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <div style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em;margin:16px 0 10px;">Rendimiento por examen</div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 16px;margin-bottom:14px;">
+      ${MODS.slice(0,3).map((m,i)=>{
+        const avg2=examAvgs[i];
+        const color=avg2>=70?'var(--green)':avg2>=50?'var(--amber)':'var(--red)';
+        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);">
+          <span style="font-size:12.5px;font-weight:600;color:var(--text-1);">${m.t}</span>
+          <span style="font-size:13px;font-weight:800;color:${color};">${avg2!=null?avg2+'%':'Sin datos'}</span>
+        </div>`;
+      }).join('')}
+    </div>`
     <div class="a-sec">Resultados de encuestas</div>${svHTML}
     <div class="a-sec">Progreso por estudiante</div>${stHTML}`;
 }
@@ -1706,6 +1767,54 @@ function submitSurvey(){
 function sendSurveyToSheets(data){
   pingSheets({...data, type:'survey'});
 }
+
+// ══ TRACKING ══
+let sessionStart=Date.now();
+let classTimeTracker={};
+
+function trackClassTime(){
+  if(!CU||CU.isAdmin)return;
+  const key=CU.email+'_class_'+CM;
+  if(!classTimeTracker[key])classTimeTracker[key]=0;
+  classTimeTracker[key]+=1; // cada minuto
+}
+
+function getSessionMinutes(){
+  return Math.round((Date.now()-sessionStart)/60000);
+}
+
+function saveMetrics(event){
+  if(!CU||CU.isAdmin)return;
+  const done=PROG.filter(Boolean).length;
+  const all=SCORES.filter(s=>s!=null);
+  const avg=all.length?Math.round(all.reduce((a,b)=>a+b,0)/all.length):0;
+  const abandoned=MODS.findIndex((m,i)=>!PROG[i]&&i<3); // primera clase no completada
+  const completion=Math.round(done/3*100); // % completado de las 3 clases activas
+
+  pingSheets({
+    type:'metrics',
+    email:CU.email,
+    name:CU.name,
+    event:event,
+    done,avg,
+    completion:completion+'%',
+    abandonedAt:abandoned>-1?'Clase '+(abandoned+1):'Completó todo',
+    sessionMin:getSessionMinutes(),
+    lastClass:MODS[CM].t,
+    date:new Date().toLocaleDateString('es-CO'),
+    time:new Date().toLocaleTimeString('es-CO')
+  });
+}
+
+// Trackear tiempo cada minuto
+setInterval(()=>{
+  if(CU&&!CU.isAdmin) trackClassTime();
+},60000);
+
+// Guardar métricas al cerrar/salir
+window.addEventListener('beforeunload',()=>{
+  if(CU&&!CU.isAdmin) saveMetrics('session_end');
+});
 
 // ══ INIT ══
 loadTheme();
